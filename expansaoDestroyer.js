@@ -232,11 +232,68 @@ class NotificationManager {
     this.injectStyles();
     this.createWatermark();
     this.createSidePanel();
+    this.createHeaderTitle();
+    this.applyDarkTheme();
   }
 
   injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
+      /* Dark theme styles */
+      body.dark-theme {
+        background-color: #121212 !important;
+        color: #e0e0e0 !important;
+      }
+      body.dark-theme #page,
+      body.dark-theme #page-wrapper,
+      body.dark-theme #page-content,
+      body.dark-theme .card,
+      body.dark-theme .activity-item,
+      body.dark-theme .course-content,
+      body.dark-theme .main-inner {
+        background-color: #1e1e1e !important;
+        color: #e0e0e0 !important;
+        border-color: #333 !important;
+      }
+      body.dark-theme .navbar,
+      body.dark-theme .secondary-navigation {
+        background-color: #121212 !important;
+        border-color: #333 !important;
+      }
+      body.dark-theme a,
+      body.dark-theme .activityname {
+        color: #9c27b0 !important;
+      }
+      body.dark-theme .btn-secondary {
+        background-color: #333 !important;
+        border-color: #444 !important;
+        color: #fff !important;
+      }
+      
+      /* Animação RGB para o título */
+      @keyframes rgbAnimation {
+        0% { color: #ff0000; }
+        16% { color: #ff8000; }
+        33% { color: #ffff00; }
+        50% { color: #00ff00; }
+        66% { color: #0000ff; }
+        83% { color: #8000ff; }
+        100% { color: #ff0080; }
+      }
+      
+      .header-title {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        z-index: 9998;
+        animation: rgbAnimation 5s linear infinite;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        font-family: 'Segoe UI', Roboto, sans-serif;
+      }
+      
+      /* Notification styles */
       @keyframes notificationSlideIn {
         0% { transform: translateX(100%); opacity: 0; }
         100% { transform: translateX(0); opacity: 1; }
@@ -339,11 +396,11 @@ class NotificationManager {
         color: white;
       }
       
-      /* Side panel styles */
+      /* Side panel styles - agora no lado esquerdo inferior */
       .side-panel {
         position: fixed;
-        bottom: 80px;
-        right: 20px;
+        bottom: 20px;
+        left: 20px;
         z-index: 9997;
         opacity: 0;
         transform: translateY(20px);
@@ -371,7 +428,7 @@ class NotificationManager {
       }
       .panel-button:hover {
         background: #2e2e2e;
-        transform: translateX(-8px);
+        transform: translateX(8px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       }
       .panel-button.credits {
@@ -380,8 +437,18 @@ class NotificationManager {
       .panel-button.instagram {
         background: linear-gradient(90deg, #1e1e1e, #405DE6);
       }
+      .panel-button.theme-toggle {
+        background: linear-gradient(90deg, #1e1e1e, #9c27b0);
+      }
     `;
     document.head.appendChild(style);
+  }
+
+  createHeaderTitle() {
+    const header = document.createElement('div');
+    header.className = 'header-title';
+    header.textContent = 'EXPANSÃO DESTROYER';
+    document.body.appendChild(header);
   }
 
   createWatermark() {
@@ -399,6 +466,11 @@ class NotificationManager {
     const panel = document.createElement('div');
     panel.className = 'side-panel';
     
+    const themeBtn = document.createElement('button');
+    themeBtn.className = 'panel-button theme-toggle';
+    themeBtn.textContent = 'Alternar Tema Escuro';
+    themeBtn.onclick = () => this.toggleDarkTheme();
+    
     const instagramBtn = document.createElement('button');
     instagramBtn.className = 'panel-button instagram';
     instagramBtn.textContent = 'Instagram @kkjphzzin';
@@ -411,11 +483,22 @@ class NotificationManager {
       this.showNotification('Créditos', 'Script original por marcos10pc, modificado por DarkMode, customizado por AmmieNyami e personalizado por Phzzin', 'info');
     };
     
+    panel.appendChild(themeBtn);
     panel.appendChild(instagramBtn);
     panel.appendChild(creditsBtn);
     document.body.appendChild(panel);
     
     setTimeout(() => panel.classList.add('show'), 2000);
+  }
+
+  applyDarkTheme() {
+    document.body.classList.add('dark-theme');
+  }
+
+  toggleDarkTheme() {
+    document.body.classList.toggle('dark-theme');
+    const isDark = document.body.classList.contains('dark-theme');
+    this.showNotification('Tema Alterado', isDark ? 'Tema escuro ativado' : 'Tema escuro desativado', 'info');
   }
 
   getIcon(type) {
