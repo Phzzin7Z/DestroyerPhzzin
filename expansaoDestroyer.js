@@ -1,5 +1,5 @@
 /*
- * Expansão do Foda-se (V05) - Modificado por Phzzin como "Expansão Destroyer"
+ * Expansão Destroyer by Phzzin - Customizado por Phzzin
  * Base original por AmmieNyami, DarkMode e marcos10pc
  */
 
@@ -230,6 +230,8 @@ class NotificationManager {
     `;
     document.body.appendChild(this.notificationContainer);
     this.injectStyles();
+    this.createWatermark();
+    this.createSidePanel();
   }
 
   injectStyles() {
@@ -269,14 +271,18 @@ class NotificationManager {
       .notification.warning {
         border-left-color: #FF9800;
       }
-      .notification::after {
-        content: '';
+      .notification-timer {
         position: absolute;
         bottom: 0;
         left: 0;
+        height: 3px;
+        background: rgba(255,255,255,0.3);
         width: 100%;
-        height: 4px;
-        background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+      }
+      .notification-timer-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #2196F3, #4CAF50);
+        animation: timerBar linear forwards;
       }
       .notification-icon {
         width: 24px;
@@ -303,8 +309,113 @@ class NotificationManager {
         color: #888;
         font-style: italic;
       }
+      @keyframes timerBar {
+        from { width: 100%; }
+        to { width: 0%; }
+      }
+      
+      /* Watermark styles */
+      .watermark {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        font-size: 18px;
+        font-weight: bold;
+        z-index: 9998;
+        opacity: 0.9;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      }
+      .watermark-phzzin {
+        color: white;
+      }
+      .watermark-exdestroyer {
+        background: linear-gradient(90deg, #9c27b0, #2196F3);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .watermark-scripts {
+        color: white;
+      }
+      
+      /* Side panel styles */
+      .side-panel {
+        position: fixed;
+        bottom: 60px;
+        right: 20px;
+        z-index: 9997;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+      }
+      .side-panel.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .panel-button {
+        background: #1e1e1e;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 8px 16px;
+        margin: 5px 0;
+        cursor: pointer;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        transition: all 0.2s ease;
+        display: block;
+        width: 100%;
+        text-align: left;
+      }
+      .panel-button:hover {
+        background: #2e2e2e;
+        transform: translateX(-5px);
+      }
+      .panel-button.credits {
+        background: linear-gradient(90deg, #1e1e1e, #333);
+      }
+      .panel-button.instagram {
+        background: linear-gradient(90deg, #1e1e1e, #405DE6);
+      }
     `;
     document.head.appendChild(style);
+  }
+
+  createWatermark() {
+    const watermark = document.createElement('div');
+    watermark.className = 'watermark';
+    watermark.innerHTML = `
+      <span class="watermark-phzzin">Phzzin </span>
+      <span class="watermark-exdestroyer">ExDestroyer </span>
+      <span class="watermark-scripts">Scripts</span>
+    `;
+    document.body.appendChild(watermark);
+  }
+
+  createSidePanel() {
+    const panel = document.createElement('div');
+    panel.className = 'side-panel';
+    
+    const instagramBtn = document.createElement('button');
+    instagramBtn.className = 'panel-button instagram';
+    instagramBtn.textContent = 'Instagram @kkjphzzin';
+    instagramBtn.onclick = () => window.open('https://instagram.com/kkjphzzin', '_blank');
+    
+    const creditsBtn = document.createElement('button');
+    creditsBtn.className = 'panel-button credits';
+    creditsBtn.textContent = 'Créditos do Script';
+    creditsBtn.onclick = () => {
+      this.showNotification('Créditos', 'Script original por marcos10pc, modificado por DarkMode, customizado por AmmieNyami e personalizado por Phzzin', 'info');
+    };
+    
+    panel.appendChild(instagramBtn);
+    panel.appendChild(creditsBtn);
+    document.body.appendChild(panel);
+    
+    // Show panel after delay
+    setTimeout(() => panel.classList.add('show'), 2000);
   }
 
   getIcon(type) {
@@ -317,7 +428,7 @@ class NotificationManager {
     return icons[type] || icons.info;
   }
 
-  showNotification(title, message, type = 'info') {
+  showNotification(title, message, type = 'info', duration = 5000) {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     
@@ -328,6 +439,7 @@ class NotificationManager {
         <div class="notification-message">${message}</div>
         <div class="notification-footer">Expansão Destroyer by Phzzin</div>
       </div>
+      <div class="notification-timer"><div class="notification-timer-bar" style="animation-duration: ${duration/1000}s"></div></div>
     `;
 
     this.notificationContainer.appendChild(notification);
@@ -335,7 +447,7 @@ class NotificationManager {
     setTimeout(() => {
       notification.style.animation = 'notificationFadeOut 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55)';
       setTimeout(() => notification.remove(), 400);
-    }, 5000);
+    }, duration);
   }
 }
 
