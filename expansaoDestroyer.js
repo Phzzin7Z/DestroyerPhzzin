@@ -246,7 +246,7 @@ class NotificationManager {
         100% { transform: translateX(100%); opacity: 0; }
       }
       .notification {
-        background: #1e1e1e;
+        background: linear-gradient(135deg, #4b6cb7, #8a2be2);
         color: #f0f0f0;
         padding: 15px;
         margin-bottom: 15px;
@@ -257,19 +257,28 @@ class NotificationManager {
         align-items: center;
         position: relative;
         overflow: hidden;
-        border-left: 4px solid;
+        border-left: 6px solid transparent;
+        position: relative;
       }
-      .notification.success {
-        border-left-color: #4CAF50;
+      .notification::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 6px;
+        border-radius: 8px 0 0 8px;
+        background: linear-gradient(180deg, #8a2be2, #4b6cb7);
+        pointer-events: none;
       }
-      .notification.error {
-        border-left-color: #F44336;
-      }
-      .notification.info {
-        border-left-color: #2196F3;
-      }
+      .notification.success,
+      .notification.error,
+      .notification.info,
       .notification.warning {
-        border-left-color: #FF9800;
+        border-left-color: transparent;
+      }
+      .notification-icon svg {
+        fill: #ffffff !important;
       }
       .notification-timer {
         position: absolute;
@@ -281,14 +290,8 @@ class NotificationManager {
       }
       .notification-timer-bar {
         height: 100%;
-        background: linear-gradient(90deg, #2196F3, #4CAF50);
+        background: linear-gradient(90deg, #8a2be2, #4b6cb7);
         animation: timerBar linear forwards;
-      }
-      .notification-icon {
-        width: 24px;
-        height: 24px;
-        margin-right: 15px;
-        flex-shrink: 0;
       }
       .notification-content {
         flex-grow: 1;
@@ -339,11 +342,11 @@ class NotificationManager {
         color: white;
       }
       
-      /* Side panel styles */
+      /* Side panel styles moved to left */
       .side-panel {
         position: fixed;
         bottom: 60px;
-        right: 20px;
+        left: 20px;
         z-index: 9997;
         opacity: 0;
         transform: translateY(20px);
@@ -371,7 +374,7 @@ class NotificationManager {
       }
       .panel-button:hover {
         background: #2e2e2e;
-        transform: translateX(-5px);
+        transform: translateX(5px);
       }
       .panel-button.credits {
         background: linear-gradient(90deg, #1e1e1e, #333);
@@ -420,10 +423,10 @@ class NotificationManager {
 
   getIcon(type) {
     const icons = {
-      success: `<svg viewBox="0 0 24 24" fill="#4CAF50"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`,
-      error: `<svg viewBox="0 0 24 24" fill="#F44336"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`,
-      info: `<svg viewBox="0 0 24 24" fill="#2196F3"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`,
-      warning: `<svg viewBox="0 0 24 24" fill="#FF9800"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`
+      success: `<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`,
+      error: `<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`,
+      info: `<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`,
+      warning: `<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`
     };
     return icons[type] || icons.info;
   }
@@ -459,132 +462,71 @@ class ActivityProcessorUI {
     this.notificationManager = new NotificationManager();
 
     this.courseId = courseId;
-    this.isProcessing = false;
-
-    this.notificationManager.showNotification('Script Iniciado!', 'Expansão Destroyer iniciado com sucesso!', 'success');
   }
 
-  async processActivities() {
-    if (this.isProcessing) {
-      this.notificationManager.showNotification('Aviso', 'O processamento já está em andamento.', 'warning');
-      return;
-    }
+  async fetchCourseContent() {
+    const url = `/course/view.php?id=${this.courseId}`;
+    const response = await this.requestManager.fetchWithRetry(url);
+    const text = await response.text();
 
-    let hasRemaining = false;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, "text/html");
 
-    this.isProcessing = true;
+    // Extração simplificada de IDs e URLs de atividades:
+    const activities = [];
+    doc.querySelectorAll('a').forEach(link => {
+      const href = link.href || '';
+      const modMatch = href.match(/\/mod\/(quiz|resource|page)\/view.php\?id=(\d+)/);
+      if (modMatch) {
+        activities.push({
+          type: modMatch[1],
+          id: modMatch[2],
+          url: href
+        });
+      }
+    });
+
+    return activities;
+  }
+
+  async process() {
     try {
-      let coursePageDom = await this.requestManager.fetchWithRetry(`/course/view.php?id=${this.courseId}`)
-        .then(response => {
-          if (!response.ok) {
-            this.notificationManager.showNotification('Erro', 'Não foi possível carregar o curso', 'error');
-            throw new Error('Unable to load course page');
+      this.notificationManager.showNotification('Início', 'Iniciando processamento das atividades...', 'info', 4000);
+      const activities = await this.fetchCourseContent();
+
+      for (const activity of activities) {
+        this.notificationManager.showNotification('Processando', `Processando atividade ID: ${activity.id} Tipo: ${activity.type}`, 'info', 3000);
+
+        if (activity.type === 'quiz') {
+          try {
+            const finalUrl = await this.examAutomator.completeExam(activity.url);
+            this.notificationManager.showNotification('Quiz Finalizado', `Quiz ID ${activity.id} finalizado com sucesso!`, 'success');
+          } catch (err) {
+            this.notificationManager.showNotification('Erro no Quiz', `Erro ao finalizar quiz ID ${activity.id}`, 'error');
           }
-          return response.text();
-        })
-        .then(html => {
-          const parser = new DOMParser();
-          return parser.parseFromString(html, 'text/html');
-        });
-
-      const activities = Array.from(coursePageDom.querySelectorAll("li.activity"))
-        .filter(activity => {
-          const completionButton = activity.querySelector(".completion-dropdown button");
-          return !completionButton || !completionButton.classList.contains("btn-success");
-        });
-
-      const simplePages = [];
-      const exams = [];
-
-      activities.forEach(activity => {
-        const link = activity.querySelector("a.aalink");
-        if (!link?.href) {
-          hasRemaining = true;
-          return;
-        }
-
-        const url = new URL(link.href);
-        const pageId = url.searchParams.get("id");
-        const activityName = link.textContent.trim();
-
-        if (pageId) {
-          if (/responda|pause/i.test(activityName)) {
-            exams.push({ href: link.href, nome: activityName });
-          } else {
-            simplePages.push(pageId);
-          }
-        }
-      });
-
-      if (simplePages.length > 0) {
-        this.notificationManager.showNotification('Progresso', `Marcando ${simplePages.length} atividades como concluídas...`, 'info');
-        await Promise.all(simplePages.map(pageId => 
-          this.pageCompletionService.markPageAsCompleted(pageId)
-        ));
-      }
-
-      if (exams.length > 0) {
-        const totalExams = exams.length;
-        this.notificationManager.showNotification('Progresso', `Processando ${totalExams} exames...`, 'info');
-
-        for (let i = 0; i < totalExams; i++) {
-          const exam = exams[i];
-          this.notificationManager.showNotification('Exame', `Processando: "${exam.nome}" (${i + 1}/${totalExams})`, 'info');
-          
-          await this.examAutomator.completeExam(exam.href);
-
-          if (i < totalExams - 1) {
-            await new Promise(resolve => setTimeout(resolve, 3000));
+        } else if (activity.type === 'resource' || activity.type === 'page') {
+          try {
+            const pageId = activity.id;
+            await this.pageCompletionService.markPageAsCompleted(pageId);
+            this.notificationManager.showNotification('Página Concluída', `Conteúdo ID ${pageId} marcado como concluído.`, 'success');
+          } catch (err) {
+            this.notificationManager.showNotification('Erro na Página', `Erro ao concluir página ID ${activity.id}`, 'error');
           }
         }
       }
 
-      if (simplePages.length === 0 && exams.length === 0) {
-        this.notificationManager.showNotification('Concluído', 'Nenhuma atividade pendente encontrada.', 'info');
-      } else {
-        this.notificationManager.showNotification('Sucesso', 'Processamento concluído com sucesso!', 'success');
-      }
-
-      if (hasRemaining) {
-        this.notificationManager.showNotification('Atividades Restantes', 'Foram encontradas atividades restantes. Processando-as!', 'warning');
-        this.isProcessing = false;
-        return this.processActivities();
-      } else {
-        this.notificationManager.showNotification('Finalizado', 'Atividades Finalizadas! | Caso Sobrar alguma execute novamente', 'success');
-        setTimeout(() => {
-          location.reload();
-        }, 1000);
-      }
-    } catch (error) {
-      this.notificationManager.showNotification('Erro', 'Ocorreu um erro durante o processamento', 'error');
-    } finally {
-      this.isProcessing = false;
+      this.notificationManager.showNotification('Concluído', 'Processamento de todas as atividades concluído!', 'success', 6000);
+    } catch (err) {
+      this.notificationManager.showNotification('Erro', 'Erro geral durante o processamento.', 'error', 6000);
     }
   }
 }
 
-function initActivityProcessor() {
-  if (window.location.hostname !== 'expansao.educacao.sp.gov.br') {
-    const notification = new NotificationManager();
-    notification.showNotification('Erro', 'Este script só funciona no site da Expansão Educacional de SP', 'error');
-    return;
-  }
+// Exemplo de uso (modifique o ID do curso conforme necessário):
+const courseId = 24615; 
+const activityProcessor = new ActivityProcessorUI(courseId);
 
-  if (window.location.pathname !== '/course/view.php') {
-    const notification = new NotificationManager();
-    notification.showNotification('Erro', 'Por favor selecione um curso antes de executar o script', 'error');
-    return;
-  }
-
-  const processor = new ActivityProcessorUI((new URLSearchParams(window.location.search)).get("id"));
-  
-  setTimeout(() => {
-    processor.processActivities();
-  }, 1000);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initActivityProcessor);
-} else {
-  initActivityProcessor();
-}
+// Iniciar processamento após 2 segundos para o painel aparecer
+setTimeout(() => {
+  activityProcessor.process();
+}, 2000);
