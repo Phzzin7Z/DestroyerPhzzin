@@ -233,17 +233,17 @@ class NotificationManager {
     this.createWatermark();
     this.createSidePanel();
     this.createHeaderTitle();
-    this.applyDarkTheme();
+    // Removido o applyDarkTheme() para não iniciar automaticamente
   }
 
   injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
-      /* Dark theme styles - melhorado para texto branco */
+      /* Dark theme styles - só aplica quando a classe dark-theme está ativa */
       body.dark-theme {
         background-color: #121212 !important;
-        color: #ffffff !important;
       }
+      body.dark-theme,
       body.dark-theme #page,
       body.dark-theme #page-wrapper,
       body.dark-theme #page-content,
@@ -255,9 +255,18 @@ class NotificationManager {
       body.dark-theme .sectionname,
       body.dark-theme .activityname,
       body.dark-theme .contentwithoutlink,
-      body.dark-theme .no-overflow {
-        background-color: #1e1e1e !important;
+      body.dark-theme .no-overflow,
+      body.dark-theme .text-muted {
         color: #ffffff !important;
+      }
+      body.dark-theme #page,
+      body.dark-theme #page-wrapper,
+      body.dark-theme #page-content,
+      body.dark-theme .card,
+      body.dark-theme .activity-item,
+      body.dark-theme .course-content,
+      body.dark-theme .main-inner {
+        background-color: #1e1e1e !important;
         border-color: #333 !important;
       }
       body.dark-theme .navbar,
@@ -273,24 +282,30 @@ class NotificationManager {
         border-color: #444 !important;
         color: #fff !important;
       }
-      body.dark-theme .text-muted {
-        color: #b0b0b0 !important;
-      }
       
-      /* Título RGB ajustado para não sobrepor conteúdo */
+      /* Título RGB ajustado para ficar em duas linhas */
       .header-title {
         position: fixed;
-        top: 60px; /* Abaixado para não cobrir o título do site */
+        top: 20px;
         left: 20px;
-        font-size: 22px;
+        font-size: 20px;
         font-weight: bold;
         z-index: 9998;
-        animation: rgbAnimation 5s linear infinite;
         text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         font-family: 'Segoe UI', Roboto, sans-serif;
         padding: 5px 10px;
         background: rgba(30, 30, 30, 0.7);
         border-radius: 5px;
+        line-height: 1.2;
+      }
+      .header-title span {
+        display: block;
+      }
+      .header-title .line1 {
+        animation: rgbAnimation 5s linear infinite;
+      }
+      .header-title .line2 {
+        color: #2196F3;
       }
       
       /* Animação RGB para o título */
@@ -458,7 +473,10 @@ class NotificationManager {
   createHeaderTitle() {
     const header = document.createElement('div');
     header.className = 'header-title';
-    header.textContent = 'EXPANSÃO DESTROYER';
+    header.innerHTML = `
+      <span class="line1">EXPANSÃO</span>
+      <span class="line2">DESTROYER</span>
+    `;
     document.body.appendChild(header);
   }
 
@@ -502,14 +520,18 @@ class NotificationManager {
     setTimeout(() => panel.classList.add('show'), 2000);
   }
 
-  applyDarkTheme() {
-    document.body.classList.add('dark-theme');
-  }
-
   toggleDarkTheme() {
     document.body.classList.toggle('dark-theme');
     const isDark = document.body.classList.contains('dark-theme');
     this.showNotification('Tema Alterado', isDark ? 'Tema escuro ativado' : 'Tema escuro desativado', 'info');
+    
+    // Força o texto a ficar branco quando o tema escuro estiver ativo
+    if (isDark) {
+      const elements = document.querySelectorAll('body, #page, #page-wrapper, #page-content, .card, .activity-item, .course-content, .main-inner, .course-header, .sectionname, .activityname, .contentwithoutlink, .no-overflow, .text-muted');
+      elements.forEach(el => {
+        el.style.color = '#ffffff !important';
+      });
+    }
   }
 
   getIcon(type) {
