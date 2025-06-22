@@ -421,38 +421,42 @@ class NotificationManager {
         background: linear-gradient(90deg, #1e1e1e, #9c27b0);
       }
 
-      /* Mystery Button styles */
+      /* Estilo do botão Pong - agora igual aos outros botões */
       .mystery-button {
+        background: linear-gradient(90deg, #1e1e1e, #2196F3);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 8px 16px;
+        margin: 5px 0;
+        cursor: pointer;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        transition: all 0.2s ease;
+        display: block;
+        width: 100%;
+        text-align: left;
         position: fixed;
         bottom: 20px;
         left: 20px;
-        z-index: 9999;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: rgba(0,0,0,0.5);
-        color: white;
-        font-size: 24px;
-        font-weight: bold;
-        border: 2px solid white;
-        cursor: pointer;
-        box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        width: auto;
+        z-index: 9997;
         animation: pulse 2s infinite;
-        transition: all 0.3s ease;
       }
       
       .mystery-button:hover {
-        transform: scale(1.1);
-        box-shadow: 0 0 20px rgba(255,255,255,0.8);
-        background: rgba(0,0,0,0.8);
+        background: linear-gradient(90deg, #1e1e1e, #1976D2);
+        transform: translateX(8px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       }
-      
+
       @keyframes pulse {
-        0% { box-shadow: 0 0 5px rgba(255,255,255,0.5); }
-        50% { box-shadow: 0 0 20px rgba(255,255,255,0.8); }
-        100% { box-shadow: 0 0 5px rgba(255,255,255,0.5); }
+        0% { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        50% { box-shadow: 0 2px 15px rgba(33,150,243,0.5); }
+        100% { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
       }
-      
+
       /* Game Container styles */
       .game-container {
         position: fixed;
@@ -547,8 +551,8 @@ class NotificationManager {
 
   createMysteryButton() {
     this.mysteryBtn = document.createElement('button');
-    this.mysteryBtn.className = 'mystery-button';
-    this.mysteryBtn.textContent = '???';
+    this.mysteryBtn.className = 'mystery-button panel-button';
+    this.mysteryBtn.textContent = 'Pong';
     this.mysteryBtn.onclick = () => this.toggleGame();
     document.body.appendChild(this.mysteryBtn);
   }
@@ -610,7 +614,7 @@ class NotificationManager {
     const playerScoreDisplay = document.querySelector('.player-score');
     const computerScoreDisplay = document.querySelector('.computer-score');
     
-    // Configurações do jogo
+    // Configurações do jogo - velocidades reduzidas
     const paddleWidth = 15, paddleHeight = 100;
     const ballSize = 10;
     const maxScore = 5;
@@ -621,10 +625,10 @@ class NotificationManager {
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
     
-    // Velocidades
-    let ballSpeedX = 5;
-    let ballSpeedY = 5;
-    let computerSpeed = 4;
+    // Velocidades ajustadas para mais devagar
+    let ballSpeedX = 3; // Reduzido de 5 para 3
+    let ballSpeedY = 3; // Reduzido de 5 para 3
+    let computerSpeed = 3; // Reduzido de 4 para 3
     
     // Pontuação
     let playerScore = 0;
@@ -670,7 +674,7 @@ class NotificationManager {
     function update() {
       if (gameOver) return;
       
-      // Movimento da bola
+      // Movimento da bola mais lento
       ballX += ballSpeedX;
       ballY += ballSpeedY;
       
@@ -742,8 +746,8 @@ class NotificationManager {
       if (gameOver) return;
       ballX = canvas.width / 2;
       ballY = canvas.height / 2;
-      ballSpeedX = 5 * (Math.random() > 0.5 ? 1 : -1);
-      ballSpeedY = 5 * (Math.random() > 0.5 ? 1 : -1);
+      ballSpeedX = 3 * (Math.random() > 0.5 ? 1 : -1);
+      ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
     }
     
     function gameLoop() {
