@@ -12,7 +12,210 @@ console.clear();
 const noop = () => {};
 console.warn = console.error = window.debug = noop;
 
-// ... [As classes UrlHelper, RequestManager, ExamAutomator e PageCompletionService permanecem exatamente as mesmas] ...
+class UrlHelper {
+  static extractUrlParam(url, paramName) {
+    return new URL(url).searchParams.get(paramName);
+  }
+
+  static extractByRegex(text, regex) {
+    const match = text.match(regex);
+    return match?.[1];
+  }
+
+  static createUrl(baseUrl, path, params = {}) {
+    const url = new URL(path, baseUrl);
+    Object.entries(params).forEach(([key, value]) => {
+      url.searchParams.append(key, value);
+    });
+    return url.toString();
+  }
+}
+
+class RequestManager {
+  constructor(baseUrl = 'https://expansao.educacao.sp.gov.br', maxRetries = 3) {
+    this.baseUrl = baseUrl;
+    this.maxRetries = maxRetries;
+    this.defaultHeaders = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+      'Upgrade-Insecure-Requests': '1',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'same-origin'
+    };
+  }
+
+  async fetchWithRetry(url, options = {}, retries = this.maxRetries) {
+    const fullUrl = url.startsWith('http') ? url : UrlHelper.createUrl(this.baseUrl, url);
+    const response = await fetch(fullUrl, {
+      credentials: 'include',
+      headers: this.defaultHeaders,
+      ...options
+    });
+
+    if (!response.ok && retries > 0) {
+      const delay = Math.pow(2, this.maxRetries - retries) * 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return this.fetchWithRetry(url, options, retries - 1);
+    }
+    return response;
+  }
+}
+
+class ExamAutomator {
+  constructor() {
+    this.requestManager = new RequestManager();
+  }
+
+  async fetchExamPage(examUrl) {
+    const response = await this.requestManager.fetchWithRetry(examUrl);
+    const pageText = await response.text();
+    const contextId = UrlHelper.extractUrlParam(examUrl, 'id') || 
+                     UrlHelper.extractByRegex(pageText, /contextInstanceId":(\d+)/);
+    const sessKey = UrlHelper.extractByRegex(pageText, /sesskey":"([^"]+)/);
+    
+    return { contextId, sessKey };
+  }
+
+  async startExamAttempt(contextId, sessKey) {
+    const formData = new URLSearchParams({
+      cmid: contextId,
+      sesskey: sessKey
+    });
+
+    const response = await this.requestManager.fetchWithRetry('/mod/quiz/startattempt.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData.toString(),
+      redirect: 'follow'
+    });
+
+    const redirectUrl = response.url;
+    const attemptId = UrlHelper.extractByRegex(redirectUrl, /attempt=(\d+)/);
+    
+    return { redirectUrl, attemptId };
+  }
+
+  async extractQuestionInfo(questionUrl) {
+    const response = await this.requestManager.fetchWithRetry(questionUrl);
+    const pageText = await response.text();
+    const parser = new DOMParser();
+    const htmlDoc = parser.parseFromString(pageText, "text/html");
+
+    const questionData = {
+      questId: null,
+      seqCheck: null,
+      options: [],
+      attempt: null,
+      sesskey: null,
+      formFields: {}
+    };
+
+    htmlDoc.querySelectorAll("input[type='hidden']").forEach(input => {
+      const name = input.getAttribute("name");
+      const value = input.getAttribute("value");
+      if (!name) return;
+
+      if (name.includes(":sequencecheck")) {
+        questionData.questId = name.split(":")[0];
+        questionData.seqCheck = value;
+      } else if (name === "attempt") {
+        questionData.attempt = value;
+      } else if (name === "sesskey") {
+        questionData.sesskey = value;
+      } else if (["thispage", "nextpage", "timeup", "mdlscrollto", "slots"].includes(name)) {
+        questionData.formFields[name] = value;
+      }
+    });
+
+    htmlDoc.querySelectorAll("input[type='radio']").forEach(input => {
+      const name = input.getAttribute("name");
+      const value = input.getAttribute("value");
+      if (name?.includes("_answer") && value !== "-1") {
+        questionData.options.push({ name, value });
+      }
+    });
+
+    return questionData;
+  }
+
+  async submitAnswer(questionData, contextId) {
+    const selectedOption = questionData.options[
+      Math.floor(Math.random() * questionData.options.length)
+    ];
+
+    const formData = new FormData();
+    formData.append(`${questionData.questId}:1_:flagged`, "0");
+    formData.append(`${questionData.questId}:1_:sequencecheck`, questionData.seqCheck);
+    formData.append(selectedOption.name, selectedOption.value);
+    formData.append("next", "Finalizar tentativa ...");
+    formData.append("attempt", questionData.attempt);
+    formData.append("sesskey", questionData.sesskey);
+    formData.append("slots", "1");
+
+    Object.entries(questionData.formFields).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    const url = `/mod/quiz/processattempt.php?cmid=${contextId}`;
+    const response = await this.requestManager.fetchWithRetry(url, {
+      method: "POST",
+      body: formData,
+      redirect: "follow"
+    });
+
+    return {
+      redirectUrl: response.url,
+      attemptId: questionData.attempt,
+      sesskey: questionData.sesskey
+    };
+  }
+
+  async finishExamAttempt(attemptId, contextId, sesskey) {
+    await this.requestManager.fetchWithRetry(
+      `/mod/quiz/summary.php?attempt=${attemptId}&cmid=${contextId}`
+    );
+
+    const formData = new URLSearchParams({
+      attempt: attemptId,
+      finishattempt: "1",
+      timeup: "0",
+      slots: "",
+      cmid: contextId,
+      sesskey: sesskey
+    });
+
+    const response = await this.requestManager.fetchWithRetry('/mod/quiz/processattempt.php', {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData.toString(),
+      redirect: "follow"
+    });
+
+    return response.url;
+  }
+
+  async completeExam(examUrl) {
+    const { contextId, sessKey } = await this.fetchExamPage(examUrl);
+    const { redirectUrl, attemptId } = await this.startExamAttempt(contextId, sessKey);
+    const questionData = await this.extractQuestionInfo(redirectUrl);
+    const { attemptId: finalAttemptId, sesskey } = await this.submitAnswer(questionData, contextId);
+    
+    return await this.finishExamAttempt(finalAttemptId, contextId, sesskey);
+  }
+}
+
+class PageCompletionService {
+  constructor() {
+    this.requestManager = new RequestManager();
+  }
+
+  async markPageAsCompleted(pageId) {
+    const url = `/mod/resource/view.php?id=${pageId}`;
+    await this.requestManager.fetchWithRetry(url);
+  }
+}
 
 class NotificationManager {
   constructor() {
@@ -34,31 +237,148 @@ class NotificationManager {
   injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
-      /* ... [Manter todos os outros estilos anteriores] ... */
-      
-      /* Novos estilos para a barra de tempo com gradiente roxo-azul */
+      @keyframes notificationSlideIn {
+        0% { transform: translateX(100%); opacity: 0; }
+        100% { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes notificationFadeOut {
+        0% { transform: translateX(0); opacity: 1; }
+        100% { transform: translateX(100%); opacity: 0; }
+      }
+      .notification {
+        background: #1e1e1e;
+        color: #f0f0f0;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        animation: notificationSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        border-left: 4px solid;
+      }
+      .notification.success {
+        border-left-color: #4CAF50;
+      }
+      .notification.error {
+        border-left-color: #F44336;
+      }
+      .notification.info {
+        border-left-color: #2196F3;
+      }
+      .notification.warning {
+        border-left-color: #FF9800;
+      }
+      .notification-timer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: rgba(255,255,255,0.1);
+        width: 100%;
+      }
       .notification-timer-bar {
         height: 100%;
         background: linear-gradient(90deg, #9c27b0, #2196F3);
         animation: timerBar linear forwards;
       }
+      .notification-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 15px;
+        flex-shrink: 0;
+      }
+      .notification-content {
+        flex-grow: 1;
+      }
+      .notification-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+        font-size: 15px;
+        color: #ffffff;
+      }
+      .notification-message {
+        font-size: 14px;
+        color: #b0b0b0;
+      }
+      .notification-footer {
+        font-size: 12px;
+        margin-top: 5px;
+        color: #888;
+        font-style: italic;
+      }
+      @keyframes timerBar {
+        from { width: 100%; }
+        to { width: 0%; }
+      }
       
-      /* Ajustes no posicionamento do side panel */
+      /* Watermark styles */
+      .watermark {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        font-size: 18px;
+        font-weight: bold;
+        z-index: 9998;
+        opacity: 0.9;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      }
+      .watermark-phzzin {
+        color: white;
+      }
+      .watermark-exdestroyer {
+        background: linear-gradient(90deg, #9c27b0, #2196F3);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .watermark-scripts {
+        color: white;
+      }
+      
+      /* Side panel styles */
       .side-panel {
         position: fixed;
-        bottom: 80px;  /* Aumentado para ficar mais abaixo */
+        bottom: 80px;
         right: 20px;
         z-index: 9997;
         opacity: 0;
         transform: translateY(20px);
         transition: all 0.3s ease;
       }
-      
-      /* Efeito hover mais destacado */
+      .side-panel.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .panel-button {
+        background: #1e1e1e;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 8px 16px;
+        margin: 5px 0;
+        cursor: pointer;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        transition: all 0.2s ease;
+        display: block;
+        width: 100%;
+        text-align: left;
+      }
       .panel-button:hover {
         background: #2e2e2e;
         transform: translateX(-8px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      }
+      .panel-button.credits {
+        background: linear-gradient(90deg, #1e1e1e, #333);
+      }
+      .panel-button.instagram {
+        background: linear-gradient(90deg, #1e1e1e, #405DE6);
       }
     `;
     document.head.appendChild(style);
@@ -95,7 +415,6 @@ class NotificationManager {
     panel.appendChild(creditsBtn);
     document.body.appendChild(panel);
     
-    // Mostrar o painel com delay
     setTimeout(() => panel.classList.add('show'), 2000);
   }
 
@@ -132,4 +451,140 @@ class NotificationManager {
   }
 }
 
-// ... [O restante do código permanece exatamente o mesmo] ...
+class ActivityProcessorUI {
+  constructor(courseId) {
+    this.requestManager = new RequestManager();
+    this.examAutomator = new ExamAutomator();
+    this.pageCompletionService = new PageCompletionService();
+    this.notificationManager = new NotificationManager();
+
+    this.courseId = courseId;
+    this.isProcessing = false;
+
+    this.notificationManager.showNotification('Script Iniciado!', 'Expansão Destroyer iniciado com sucesso!', 'success');
+  }
+
+  async processActivities() {
+    if (this.isProcessing) {
+      this.notificationManager.showNotification('Aviso', 'O processamento já está em andamento.', 'warning');
+      return;
+    }
+
+    let hasRemaining = false;
+
+    this.isProcessing = true;
+    try {
+      let coursePageDom = await this.requestManager.fetchWithRetry(`/course/view.php?id=${this.courseId}`)
+        .then(response => {
+          if (!response.ok) {
+            this.notificationManager.showNotification('Erro', 'Não foi possível carregar o curso', 'error');
+            throw new Error('Unable to load course page');
+          }
+          return response.text();
+        })
+        .then(html => {
+          const parser = new DOMParser();
+          return parser.parseFromString(html, 'text/html');
+        });
+
+      const activities = Array.from(coursePageDom.querySelectorAll("li.activity"))
+        .filter(activity => {
+          const completionButton = activity.querySelector(".completion-dropdown button");
+          return !completionButton || !completionButton.classList.contains("btn-success");
+        });
+
+      const simplePages = [];
+      const exams = [];
+
+      activities.forEach(activity => {
+        const link = activity.querySelector("a.aalink");
+        if (!link?.href) {
+          hasRemaining = true;
+          return;
+        }
+
+        const url = new URL(link.href);
+        const pageId = url.searchParams.get("id");
+        const activityName = link.textContent.trim();
+
+        if (pageId) {
+          if (/responda|pause/i.test(activityName)) {
+            exams.push({ href: link.href, nome: activityName });
+          } else {
+            simplePages.push(pageId);
+          }
+        }
+      });
+
+      if (simplePages.length > 0) {
+        this.notificationManager.showNotification('Progresso', `Marcando ${simplePages.length} atividades como concluídas...`, 'info');
+        await Promise.all(simplePages.map(pageId => 
+          this.pageCompletionService.markPageAsCompleted(pageId)
+        ));
+      }
+
+      if (exams.length > 0) {
+        const totalExams = exams.length;
+        this.notificationManager.showNotification('Progresso', `Processando ${totalExams} exames...`, 'info');
+
+        for (let i = 0; i < totalExams; i++) {
+          const exam = exams[i];
+          this.notificationManager.showNotification('Exame', `Processando: "${exam.nome}" (${i + 1}/${totalExams})`, 'info');
+          
+          await this.examAutomator.completeExam(exam.href);
+
+          if (i < totalExams - 1) {
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
+        }
+      }
+
+      if (simplePages.length === 0 && exams.length === 0) {
+        this.notificationManager.showNotification('Concluído', 'Nenhuma atividade pendente encontrada.', 'info');
+      } else {
+        this.notificationManager.showNotification('Sucesso', 'Processamento concluído com sucesso!', 'success');
+      }
+
+      if (hasRemaining) {
+        this.notificationManager.showNotification('Atividades Restantes', 'Foram encontradas atividades restantes. Processando-as!', 'warning');
+        this.isProcessing = false;
+        return this.processActivities();
+      } else {
+        this.notificationManager.showNotification('Finalizado', 'Atividades Finalizadas! | Caso Sobrar alguma execute novamente', 'success');
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      }
+    } catch (error) {
+      this.notificationManager.showNotification('Erro', 'Ocorreu um erro durante o processamento', 'error');
+    } finally {
+      this.isProcessing = false;
+    }
+  }
+}
+
+function initActivityProcessor() {
+  if (window.location.hostname !== 'expansao.educacao.sp.gov.br') {
+    const notification = new NotificationManager();
+    notification.showNotification('Erro', 'Este script só funciona no site da Expansão Educacional de SP', 'error');
+    return;
+  }
+
+  if (window.location.pathname !== '/course/view.php') {
+    const notification = new NotificationManager();
+    notification.showNotification('Erro', 'Por favor selecione um curso antes de executar o script', 'error');
+    return;
+  }
+
+  const processor = new ActivityProcessorUI((new URLSearchParams(window.location.search)).get("id"));
+  
+  setTimeout(() => {
+    processor.processActivities();
+  }, 1000);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initActivityProcessor);
+} else {
+  initActivityProcessor();
+}
