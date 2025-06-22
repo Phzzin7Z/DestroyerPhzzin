@@ -239,10 +239,10 @@ class NotificationManager {
   injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
-      /* Dark theme styles */
+      /* Dark theme styles - melhorado para texto branco */
       body.dark-theme {
         background-color: #121212 !important;
-        color: #e0e0e0 !important;
+        color: #ffffff !important;
       }
       body.dark-theme #page,
       body.dark-theme #page-wrapper,
@@ -250,9 +250,14 @@ class NotificationManager {
       body.dark-theme .card,
       body.dark-theme .activity-item,
       body.dark-theme .course-content,
-      body.dark-theme .main-inner {
+      body.dark-theme .main-inner,
+      body.dark-theme .course-header,
+      body.dark-theme .sectionname,
+      body.dark-theme .activityname,
+      body.dark-theme .contentwithoutlink,
+      body.dark-theme .no-overflow {
         background-color: #1e1e1e !important;
-        color: #e0e0e0 !important;
+        color: #ffffff !important;
         border-color: #333 !important;
       }
       body.dark-theme .navbar,
@@ -260,14 +265,32 @@ class NotificationManager {
         background-color: #121212 !important;
         border-color: #333 !important;
       }
-      body.dark-theme a,
-      body.dark-theme .activityname {
+      body.dark-theme a {
         color: #9c27b0 !important;
       }
       body.dark-theme .btn-secondary {
         background-color: #333 !important;
         border-color: #444 !important;
         color: #fff !important;
+      }
+      body.dark-theme .text-muted {
+        color: #b0b0b0 !important;
+      }
+      
+      /* Título RGB ajustado para não sobrepor conteúdo */
+      .header-title {
+        position: fixed;
+        top: 60px; /* Abaixado para não cobrir o título do site */
+        left: 20px;
+        font-size: 22px;
+        font-weight: bold;
+        z-index: 9998;
+        animation: rgbAnimation 5s linear infinite;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        padding: 5px 10px;
+        background: rgba(30, 30, 30, 0.7);
+        border-radius: 5px;
       }
       
       /* Animação RGB para o título */
@@ -279,18 +302,6 @@ class NotificationManager {
         66% { color: #0000ff; }
         83% { color: #8000ff; }
         100% { color: #ff0080; }
-      }
-      
-      .header-title {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        font-size: 24px;
-        font-weight: bold;
-        z-index: 9998;
-        animation: rgbAnimation 5s linear infinite;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        font-family: 'Segoe UI', Roboto, sans-serif;
       }
       
       /* Notification styles */
