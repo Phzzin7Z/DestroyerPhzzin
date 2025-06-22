@@ -246,36 +246,19 @@ class NotificationManager {
         100% { transform: translateX(100%); opacity: 0; }
       }
       .notification {
-        background: linear-gradient(135deg, #4b6cb7, #8a2be2);
+        background: #111111; /* fundo preto escuro */
         color: #f0f0f0;
         padding: 15px;
         margin-bottom: 15px;
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.7);
         animation: notificationSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         display: flex;
         align-items: center;
         position: relative;
         overflow: hidden;
-        border-left: 6px solid transparent;
+        border-left: 6px solid transparent; /* sem gradiente na borda */
         position: relative;
-      }
-      .notification::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 6px;
-        border-radius: 8px 0 0 8px;
-        background: linear-gradient(180deg, #8a2be2, #4b6cb7);
-        pointer-events: none;
-      }
-      .notification.success,
-      .notification.error,
-      .notification.info,
-      .notification.warning {
-        border-left-color: transparent;
       }
       .notification-icon svg {
         fill: #ffffff !important;
@@ -285,49 +268,31 @@ class NotificationManager {
         bottom: 0;
         left: 0;
         height: 3px;
-        background: rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.15);
         width: 100%;
       }
       .notification-timer-bar {
         height: 100%;
-        background: linear-gradient(90deg, #8a2be2, #4b6cb7);
+        background: linear-gradient(90deg, #4b6cb7, #8a2be2);
         animation: timerBar linear forwards;
-      }
-      .notification-content {
-        flex-grow: 1;
-      }
-      .notification-title {
-        font-weight: 600;
-        margin-bottom: 5px;
-        font-size: 15px;
-        color: #ffffff;
-      }
-      .notification-message {
-        font-size: 14px;
-        color: #b0b0b0;
-      }
-      .notification-footer {
-        font-size: 12px;
-        margin-top: 5px;
-        color: #888;
-        font-style: italic;
       }
       @keyframes timerBar {
         from { width: 100%; }
         to { width: 0%; }
       }
-      
+
       /* Watermark styles */
       .watermark {
         position: fixed;
         bottom: 20px;
-        right: 20px;
+        left: 20px;
         font-family: 'Segoe UI', Roboto, sans-serif;
         font-size: 18px;
         font-weight: bold;
         z-index: 9998;
         opacity: 0.9;
         text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        user-select: none;
       }
       .watermark-phzzin {
         color: white;
@@ -342,15 +307,18 @@ class NotificationManager {
         color: white;
       }
       
-      /* Side panel styles moved to left */
+      /* Side panel styles */
       .side-panel {
         position: fixed;
-        bottom: 60px;
-        left: 20px;
+        bottom: 80px; /* mais para baixo */
+        left: 20px; /* move para o canto esquerdo */
         z-index: 9997;
         opacity: 0;
         transform: translateY(20px);
         transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
       }
       .side-panel.show {
         opacity: 1;
@@ -362,7 +330,6 @@ class NotificationManager {
         border: none;
         border-radius: 20px;
         padding: 8px 16px;
-        margin: 5px 0;
         cursor: pointer;
         font-family: 'Segoe UI', Roboto, sans-serif;
         font-size: 14px;
@@ -371,10 +338,11 @@ class NotificationManager {
         display: block;
         width: 100%;
         text-align: left;
+        user-select: none;
       }
       .panel-button:hover {
         background: #2e2e2e;
-        transform: translateX(5px);
+        transform: translateX(5px); /* hover desloca para a direita */
       }
       .panel-button.credits {
         background: linear-gradient(90deg, #1e1e1e, #333);
@@ -462,6 +430,9 @@ class ActivityProcessorUI {
     this.notificationManager = new NotificationManager();
 
     this.courseId = courseId;
+    this.isProcessing = false;
+
+    this.notificationManager.showNotification('Script Iniciado!', 'Expansão Destroyer iniciado com sucesso!', 'success');
   }
 
   async fetchCourseContent() {
@@ -473,60 +444,62 @@ class ActivityProcessorUI {
     const doc = parser.parseFromString(text, "text/html");
 
     // Extração simplificada de IDs e URLs de atividades:
+    // Pega todos os links que têm "mod" e "id" em query string
     const activities = [];
-    doc.querySelectorAll('a').forEach(link => {
-      const href = link.href || '';
-      const modMatch = href.match(/\/mod\/(quiz|resource|page)\/view.php\?id=(\d+)/);
-      if (modMatch) {
-        activities.push({
-          type: modMatch[1],
-          id: modMatch[2],
-          url: href
-        });
+    doc.querySelectorAll('a').forEach(a => {
+      const href = a.href;
+      if (href.includes('mod/')) {
+        const id = UrlHelper.extractUrlParam(href, 'id');
+        if (id) {
+          activities.push({
+            id,
+            url: href
+          });
+        }
       }
     });
 
     return activities;
   }
 
-  async process() {
+  async processActivity(activity) {
     try {
-      this.notificationManager.showNotification('Início', 'Iniciando processamento das atividades...', 'info', 4000);
-      const activities = await this.fetchCourseContent();
-
-      for (const activity of activities) {
-        this.notificationManager.showNotification('Processando', `Processando atividade ID: ${activity.id} Tipo: ${activity.type}`, 'info', 3000);
-
-        if (activity.type === 'quiz') {
-          try {
-            const finalUrl = await this.examAutomator.completeExam(activity.url);
-            this.notificationManager.showNotification('Quiz Finalizado', `Quiz ID ${activity.id} finalizado com sucesso!`, 'success');
-          } catch (err) {
-            this.notificationManager.showNotification('Erro no Quiz', `Erro ao finalizar quiz ID ${activity.id}`, 'error');
-          }
-        } else if (activity.type === 'resource' || activity.type === 'page') {
-          try {
-            const pageId = activity.id;
-            await this.pageCompletionService.markPageAsCompleted(pageId);
-            this.notificationManager.showNotification('Página Concluída', `Conteúdo ID ${pageId} marcado como concluído.`, 'success');
-          } catch (err) {
-            this.notificationManager.showNotification('Erro na Página', `Erro ao concluir página ID ${activity.id}`, 'error');
-          }
-        }
+      if (activity.url.includes('quiz/startattempt.php')) {
+        this.notificationManager.showNotification('Quiz detectado', `Processando quiz ID ${activity.id}`, 'info');
+        const finalUrl = await this.examAutomator.completeExam(activity.url);
+        this.notificationManager.showNotification('Quiz concluído', `Quiz ${activity.id} finalizado com sucesso!`, 'success');
+        return finalUrl;
+      } else if (activity.url.includes('resource/view.php')) {
+        await this.pageCompletionService.markPageAsCompleted(activity.id);
+        this.notificationManager.showNotification('Página marcada', `Página ${activity.id} marcada como concluída`, 'success');
+      } else {
+        this.notificationManager.showNotification('Atividade ignorada', `Tipo desconhecido para atividade ${activity.id}`, 'warning');
       }
-
-      this.notificationManager.showNotification('Concluído', 'Processamento de todas as atividades concluído!', 'success', 6000);
     } catch (err) {
-      this.notificationManager.showNotification('Erro', 'Erro geral durante o processamento.', 'error', 6000);
+      this.notificationManager.showNotification('Erro', `Erro ao processar atividade ${activity.id}: ${err.message}`, 'error');
     }
+  }
+
+  async startProcessing() {
+    if (this.isProcessing) {
+      this.notificationManager.showNotification('Já em execução', 'O processamento já está em andamento.', 'warning');
+      return;
+    }
+    this.isProcessing = true;
+
+    const activities = await this.fetchCourseContent();
+
+    for (const activity of activities) {
+      await this.processActivity(activity);
+      await new Promise(r => setTimeout(r, 1000)); // pequena pausa entre atividades
+    }
+
+    this.notificationManager.showNotification('Processamento concluído', 'Todas as atividades foram processadas.', 'success');
+    this.isProcessing = false;
   }
 }
 
-// Exemplo de uso (modifique o ID do curso conforme necessário):
-const courseId = 24615; 
-const activityProcessor = new ActivityProcessorUI(courseId);
-
-// Iniciar processamento após 2 segundos para o painel aparecer
-setTimeout(() => {
-  activityProcessor.process();
-}, 2000);
+// Inicia tudo automaticamente, substitua '123' pelo ID do curso que deseja processar
+const courseId = 123; // trocar para o curso real
+const processor = new ActivityProcessorUI(courseId);
+processor.startProcessing();
