@@ -3,7 +3,6 @@
  * Base original por AmmieNyami, DarkMode e marcos10pc
  */
 
-
 // Proteção mantida por precaução
 const script = document.createElement('script');
 script.src = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
@@ -449,14 +448,11 @@ class NotificationManager {
       .panel-button.credits {
         background: linear-gradient(90deg, #1e1e1e, #333);
       }
-      .panel-button.instagram {
-        background: linear-gradient(90deg, #1e1e1e, #405DE6);
-      }
       .panel-button.theme-toggle {
         background: linear-gradient(90deg, #1e1e1e, #9c27b0);
       }
 
-      /* Estilo do botão Pong - agora igual aos outros botões */
+      /* Estilo do botão Pong */
       .mystery-button {
         background: linear-gradient(90deg, #1e1e1e, #2196F3);
         color: white;
@@ -605,11 +601,6 @@ class NotificationManager {
     themeBtn.textContent = 'Alternar Tema Escuro';
     themeBtn.onclick = () => this.toggleDarkTheme();
     
-    const instagramBtn = document.createElement('button');
-    instagramBtn.className = 'panel-button instagram';
-    instagramBtn.textContent = 'Instagram @kkjphzzin';
-    instagramBtn.onclick = () => window.open('https://instagram.com/kkjphzzin', '_blank');
-    
     const creditsBtn = document.createElement('button');
     creditsBtn.className = 'panel-button credits';
     creditsBtn.textContent = 'Créditos do Script';
@@ -618,7 +609,6 @@ class NotificationManager {
     };
     
     panel.appendChild(themeBtn);
-    panel.appendChild(instagramBtn);
     panel.appendChild(creditsBtn);
     document.body.appendChild(panel);
     
