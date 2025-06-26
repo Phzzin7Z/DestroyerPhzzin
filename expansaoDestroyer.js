@@ -129,7 +129,6 @@ class ExamAutomator {
         questionData.sesskey = value;
       } else if (["thispage", "nextpage", "timeup", "mdlscrollto", "slots"].includes(name)) {
         questionData.formFields[name] = value;
-      }
     });
 
     htmlDoc.querySelectorAll("input[type='radio']").forEach(input => {
@@ -251,9 +250,10 @@ class NotificationManager {
         text-shadow: 0 0 2px rgba(0,0,0,0.5) !important;
       }
 
-      /* Dark theme styles */
+      /* Dark theme styles - Melhorado */
       body.dark-theme {
         background-color: #121212 !important;
+        color: #e0e0e0 !important;
       }
       body.dark-theme #page,
       body.dark-theme #page-wrapper,
@@ -264,6 +264,7 @@ class NotificationManager {
       body.dark-theme .main-inner {
         background-color: #1e1e1e !important;
         border-color: #333 !important;
+        color: #e0e0e0 !important;
       }
       body.dark-theme .navbar,
       body.dark-theme .secondary-navigation {
@@ -271,12 +272,15 @@ class NotificationManager {
         border-color: #333 !important;
       }
       body.dark-theme a {
-        color: #9c27b0 !important;
+        color: #bb86fc !important;
       }
       body.dark-theme .btn-secondary {
         background-color: #333 !important;
         border-color: #444 !important;
         color: #fff !important;
+      }
+      body.dark-theme .text-muted {
+        color: #a0a0a0 !important;
       }
       
       /* Notification styles */
@@ -324,7 +328,7 @@ class NotificationManager {
       }
       .notification-timer-bar {
         height: 100%;
-        background: linear-gradient(90deg, #9c27b0, #2196F3);
+        background: linear-gradient(90deg, #bb86fc, #2196F3);
         animation: timerBar linear forwards;
       }
       .notification-icon {
@@ -370,7 +374,7 @@ class NotificationManager {
         text-shadow: 0 2px 4px rgba(0,0,0,0.5);
       }
       .watermark-phzzin {
-        color: white;
+        color: #bb86fc;
       }
       .watermark-scripts {
         color: white;
@@ -414,16 +418,13 @@ class NotificationManager {
       .panel-button.credits {
         background: linear-gradient(90deg, #1e1e1e, #333);
       }
-      .panel-button.instagram {
-        background: linear-gradient(90deg, #1e1e1e, #405DE6);
-      }
       .panel-button.theme-toggle {
-        background: linear-gradient(90deg, #1e1e1e, #9c27b0);
+        background: linear-gradient(90deg, #1e1e1e, #bb86fc);
       }
 
       /* Estilo do botão Pong - agora igual aos outros botões */
       .mystery-button {
-        background: linear-gradient(90deg, #1e1e1e, #2196F3);
+        background: linear-gradient(90deg, #1e1e1e, #03dac6);
         color: white;
         border: none;
         border-radius: 20px;
@@ -446,18 +447,18 @@ class NotificationManager {
       }
       
       .mystery-button:hover {
-        background: linear-gradient(90deg, #1e1e1e, #1976D2);
+        background: linear-gradient(90deg, #1e1e1e, #018786);
         transform: translateX(8px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       }
 
       @keyframes pulse {
         0% { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        50% { box-shadow: 0 2px 15px rgba(33,150,243,0.5); }
+        50% { box-shadow: 0 2px 15px rgba(3,218,198,0.5); }
         100% { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
       }
 
-      /* Game Container styles */
+      /* Game Container styles - Tema Noturno */
       .game-container {
         position: fixed;
         top: 50%;
@@ -465,8 +466,8 @@ class NotificationManager {
         transform: translate(-50%, -50%);
         width: 600px;
         height: 400px;
-        background: #111;
-        border: 2px solid #444;
+        background: #121212;
+        border: 2px solid #bb86fc;
         z-index: 10000;
         display: none;
         box-shadow: 0 0 30px rgba(0,0,0,0.8);
@@ -501,10 +502,20 @@ class NotificationManager {
         top: 20px;
         width: 100%;
         text-align: center;
-        color: white;
+        color: #bb86fc;
         font-family: 'Courier New', monospace;
         font-size: 24px;
-        text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        text-shadow: 0 0 5px rgba(187,134,252,0.5);
+      }
+      
+      .controls-info {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        text-align: center;
+        color: #03dac6;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
       }
     `;
     document.head.appendChild(style);
@@ -529,11 +540,6 @@ class NotificationManager {
     themeBtn.textContent = 'Alternar Tema Escuro';
     themeBtn.onclick = () => this.toggleDarkTheme();
     
-    const instagramBtn = document.createElement('button');
-    instagramBtn.className = 'panel-button instagram';
-    instagramBtn.textContent = 'Instagram @kkjphzzin';
-    instagramBtn.onclick = () => window.open('https://instagram.com/kkjphzzin', '_blank');
-    
     const creditsBtn = document.createElement('button');
     creditsBtn.className = 'panel-button credits';
     creditsBtn.textContent = 'Créditos do Script';
@@ -542,7 +548,6 @@ class NotificationManager {
     };
     
     panel.appendChild(themeBtn);
-    panel.appendChild(instagramBtn);
     panel.appendChild(creditsBtn);
     document.body.appendChild(panel);
     
@@ -592,8 +597,14 @@ class NotificationManager {
       <span class="computer-score">0</span>
     `;
     
+    // Informações de controle
+    const controlsInfo = document.createElement('div');
+    controlsInfo.className = 'controls-info';
+    controlsInfo.textContent = 'Controles: W/S ou ↑/↓';
+    
     this.gameContainer.appendChild(closeBtn);
     this.gameContainer.appendChild(scoreDisplay);
+    this.gameContainer.appendChild(controlsInfo);
     this.gameContainer.appendChild(canvas);
     document.body.appendChild(this.gameContainer);
     
@@ -614,7 +625,7 @@ class NotificationManager {
     const playerScoreDisplay = document.querySelector('.player-score');
     const computerScoreDisplay = document.querySelector('.computer-score');
     
-    // Configurações do jogo - velocidades reduzidas
+    // Configurações do jogo
     const paddleWidth = 15, paddleHeight = 100;
     const ballSize = 10;
     const maxScore = 5;
@@ -625,34 +636,44 @@ class NotificationManager {
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
     
-    // Velocidades ajustadas para mais devagar
-    let ballSpeedX = 3; // Reduzido de 5 para 3
-    let ballSpeedY = 3; // Reduzido de 5 para 3
-    let computerSpeed = 3; // Reduzido de 4 para 3
+    // Velocidades
+    let ballSpeedX = 4;
+    let ballSpeedY = 4;
+    let computerSpeed = 3;
     
     // Pontuação
     let playerScore = 0;
     let computerScore = 0;
     let gameOver = false;
     
-    // Controles
-    canvas.addEventListener('mousemove', (e) => {
-      if (gameOver) return;
-      const rect = canvas.getBoundingClientRect();
-      playerY = e.clientY - rect.top - paddleHeight / 2;
-      
-      // Limitar paddle dentro do canvas
-      if (playerY < 0) playerY = 0;
-      if (playerY > canvas.height - paddleHeight) playerY = canvas.height - paddleHeight;
+    // Estado das teclas
+    const keys = {
+      w: false,
+      s: false,
+      ArrowUp: false,
+      ArrowDown: false
+    };
+    
+    // Event listeners para teclado
+    document.addEventListener('keydown', (e) => {
+      if (keys.hasOwnProperty(e.key)) {
+        keys[e.key] = true;
+      }
+    });
+    
+    document.addEventListener('keyup', (e) => {
+      if (keys.hasOwnProperty(e.key)) {
+        keys[e.key] = false;
+      }
     });
     
     function draw() {
       // Fundo preto
-      ctx.fillStyle = 'black';
+      ctx.fillStyle = '#121212';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       // Linha central
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.strokeStyle = 'rgba(187,134,252,0.2)';
       ctx.beginPath();
       ctx.setLineDash([5, 5]);
       ctx.moveTo(canvas.width / 2, 0);
@@ -661,11 +682,12 @@ class NotificationManager {
       ctx.setLineDash([]);
       
       // Paddles
-      ctx.fillStyle = 'white';
+      ctx.fillStyle = '#bb86fc';
       ctx.fillRect(0, playerY, paddleWidth, paddleHeight);
       ctx.fillRect(canvas.width - paddleWidth, computerY, paddleWidth, paddleHeight);
       
       // Bola
+      ctx.fillStyle = '#03dac6';
       ctx.beginPath();
       ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
       ctx.fill();
@@ -674,7 +696,15 @@ class NotificationManager {
     function update() {
       if (gameOver) return;
       
-      // Movimento da bola mais lento
+      // Movimento do jogador (W/S ou setas)
+      if ((keys.w || keys.ArrowUp) && playerY > 0) {
+        playerY -= 6;
+      }
+      if ((keys.s || keys.ArrowDown) && playerY < canvas.height - paddleHeight) {
+        playerY += 6;
+      }
+      
+      // Movimento da bola
       ballX += ballSpeedX;
       ballY += ballSpeedY;
       
@@ -686,12 +716,18 @@ class NotificationManager {
       // Colisão com paddles
       if (ballX < paddleWidth + ballSize && 
           ballY > playerY && ballY < playerY + paddleHeight) {
-        ballSpeedX = -ballSpeedX * 1.05; // Aumenta velocidade
+        ballSpeedX = -ballSpeedX * 1.05;
+        // Efeito visual ao acertar
+        ctx.fillStyle = 'rgba(3,218,198,0.5)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
       
       if (ballX > canvas.width - paddleWidth - ballSize && 
           ballY > computerY && ballY < computerY + paddleHeight) {
-        ballSpeedX = -ballSpeedX * 1.05; // Aumenta velocidade
+        ballSpeedX = -ballSpeedX * 1.05;
+        // Efeito visual ao acertar
+        ctx.fillStyle = 'rgba(187,134,252,0.5)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
       
       // Pontuação
@@ -726,7 +762,7 @@ class NotificationManager {
       if (playerScore >= maxScore || computerScore >= maxScore) {
         gameOver = true;
         ctx.font = '40px Arial';
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = '#bb86fc';
         ctx.textAlign = 'center';
         ctx.fillText(
           playerScore >= maxScore ? 'Você Venceu!' : 'Computador Venceu!', 
@@ -734,6 +770,7 @@ class NotificationManager {
           canvas.height / 2
         );
         ctx.font = '20px Arial';
+        ctx.fillStyle = '#03dac6';
         ctx.fillText(
           'Clique em ✕ para fechar', 
           canvas.width / 2, 
@@ -746,8 +783,8 @@ class NotificationManager {
       if (gameOver) return;
       ballX = canvas.width / 2;
       ballY = canvas.height / 2;
-      ballSpeedX = 3 * (Math.random() > 0.5 ? 1 : -1);
-      ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+      ballSpeedX = 4 * (Math.random() > 0.5 ? 1 : -1);
+      ballSpeedY = 4 * (Math.random() > 0.5 ? 1 : -1);
     }
     
     function gameLoop() {
