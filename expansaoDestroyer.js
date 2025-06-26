@@ -237,17 +237,46 @@ class NotificationManager {
     this.createWatermark();
     this.createSidePanel();
     this.createMysteryButton();
+    this.keysPressed = {};
+    this.setupKeyListeners();
+  }
+
+  setupKeyListeners() {
+    document.addEventListener('keydown', (e) => {
+      this.keysPressed[e.key.toLowerCase()] = true;
+    });
+    
+    document.addEventListener('keyup', (e) => {
+      this.keysPressed[e.key.toLowerCase()] = false;
+    });
   }
 
   injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
       /* Estilo para os títulos dos cursos */
+      body.dark-theme,
       body.dark-theme .activity-item .activityname,
       body.dark-theme .activity-item .instancename,
       body.dark-theme .sectionname,
-      body.dark-theme .activitytitle {
-        color: #ffffff !important;
+      body.dark-theme .activitytitle,
+      body.dark-theme .course-content,
+      body.dark-theme .course-content *,
+      body.dark-theme .activity-description,
+      body.dark-theme .activity-description *,
+      body.dark-theme .no-overflow,
+      body.dark-theme .no-overflow *,
+      body.dark-theme .card-text,
+      body.dark-theme .card-text *,
+      body.dark-theme .contentafterlink,
+      body.dark-theme .contentafterlink *,
+      body.dark-theme .activity-info,
+      body.dark-theme .activity-info *,
+      body.dark-theme .mod-indent-outer,
+      body.dark-theme .mod-indent-outer *,
+      body.dark-theme .activityinstance,
+      body.dark-theme .activityinstance * {
+        color: #e0e0e0 !important;
         text-shadow: 0 0 2px rgba(0,0,0,0.5) !important;
       }
 
@@ -261,7 +290,13 @@ class NotificationManager {
       body.dark-theme .card,
       body.dark-theme .activity-item,
       body.dark-theme .course-content,
-      body.dark-theme .main-inner {
+      body.dark-theme .main-inner,
+      body.dark-theme .activity-description,
+      body.dark-theme .no-overflow,
+      body.dark-theme .card-body,
+      body.dark-theme .contentafterlink,
+      body.dark-theme .activity-info,
+      body.dark-theme .mod-indent-outer {
         background-color: #1e1e1e !important;
         border-color: #333 !important;
       }
@@ -457,7 +492,7 @@ class NotificationManager {
         100% { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
       }
 
-      /* Game Container styles */
+      /* Modern Pong Game styles */
       .game-container {
         position: fixed;
         top: 50%;
@@ -465,11 +500,14 @@ class NotificationManager {
         transform: translate(-50%, -50%);
         width: 600px;
         height: 400px;
-        background: #111;
+        background: rgba(30, 30, 30, 0.9);
         border: 2px solid #444;
+        border-radius: 10px;
         z-index: 10000;
         display: none;
         box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        backdrop-filter: blur(5px);
+        overflow: hidden;
       }
       
       .close-btn {
@@ -505,6 +543,44 @@ class NotificationManager {
         font-family: 'Courier New', monospace;
         font-size: 24px;
         text-shadow: 0 0 5px rgba(255,255,255,0.5);
+      }
+      
+      .controls-info {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        text-align: center;
+        color: rgba(255,255,255,0.7);
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+      }
+      
+      .pong-ball {
+        position: absolute;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #9c27b0, #2196F3);
+        box-shadow: 0 0 10px rgba(156, 39, 176, 0.7);
+      }
+      
+      .pong-paddle {
+        position: absolute;
+        border-radius: 5px;
+        background: linear-gradient(90deg, #2196F3, #9c27b0);
+        box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+      }
+      
+      .game-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0,0,0,0.7);
+        z-index: 100;
       }
     `;
     document.head.appendChild(style);
@@ -592,8 +668,14 @@ class NotificationManager {
       <span class="computer-score">0</span>
     `;
     
+    // Informações de controle
+    const controlsInfo = document.createElement('div');
+    controlsInfo.className = 'controls-info';
+    controlsInfo.textContent = 'Controles: W (cima) e S (baixo)';
+    
     this.gameContainer.appendChild(closeBtn);
     this.gameContainer.appendChild(scoreDisplay);
+    this.gameContainer.appendChild(controlsInfo);
     this.gameContainer.appendChild(canvas);
     document.body.appendChild(this.gameContainer);
     
@@ -614,9 +696,9 @@ class NotificationManager {
     const playerScoreDisplay = document.querySelector('.player-score');
     const computerScoreDisplay = document.querySelector('.computer-score');
     
-    // Configurações do jogo - velocidades reduzidas
+    // Configurações do jogo - estilo moderno
     const paddleWidth = 15, paddleHeight = 100;
-    const ballSize = 10;
+    const ballSize = 12;
     const maxScore = 5;
     
     // Posições iniciais
@@ -625,56 +707,80 @@ class NotificationManager {
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
     
-    // Velocidades ajustadas para mais devagar
-    let ballSpeedX = 3; // Reduzido de 5 para 3
-    let ballSpeedY = 3; // Reduzido de 5 para 3
-    let computerSpeed = 3; // Reduzido de 4 para 3
+    // Velocidades ajustadas
+    let ballSpeedX = 4;
+    let ballSpeedY = 4;
+    let computerSpeed = 3;
     
     // Pontuação
     let playerScore = 0;
     let computerScore = 0;
     let gameOver = false;
     
-    // Controles
-    canvas.addEventListener('mousemove', (e) => {
-      if (gameOver) return;
-      const rect = canvas.getBoundingClientRect();
-      playerY = e.clientY - rect.top - paddleHeight / 2;
-      
-      // Limitar paddle dentro do canvas
-      if (playerY < 0) playerY = 0;
-      if (playerY > canvas.height - paddleHeight) playerY = canvas.height - paddleHeight;
-    });
+    // Controles WASD
+    const handleKeyPress = () => {
+      if (this.keysPressed['w'] && playerY > 0) {
+        playerY -= 8;
+      }
+      if (this.keysPressed['s'] && playerY < canvas.height - paddleHeight) {
+        playerY += 8;
+      }
+    };
     
     function draw() {
-      // Fundo preto
-      ctx.fillStyle = 'black';
+      // Fundo com gradiente escuro
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, '#121212');
+      gradient.addColorStop(1, '#1e1e1e');
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Linha central
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      // Linha central tracejada
+      ctx.strokeStyle = 'rgba(156, 39, 176, 0.3)';
       ctx.beginPath();
-      ctx.setLineDash([5, 5]);
+      ctx.setLineDash([10, 15]);
       ctx.moveTo(canvas.width / 2, 0);
       ctx.lineTo(canvas.width / 2, canvas.height);
       ctx.stroke();
       ctx.setLineDash([]);
       
-      // Paddles
-      ctx.fillStyle = 'white';
+      // Paddles com gradiente
+      const paddleGradient1 = ctx.createLinearGradient(0, playerY, 0, playerY + paddleHeight);
+      paddleGradient1.addColorStop(0, '#2196F3');
+      paddleGradient1.addColorStop(1, '#9c27b0');
+      ctx.fillStyle = paddleGradient1;
       ctx.fillRect(0, playerY, paddleWidth, paddleHeight);
+      
+      const paddleGradient2 = ctx.createLinearGradient(canvas.width - paddleWidth, computerY, canvas.width - paddleWidth, computerY + paddleHeight);
+      paddleGradient2.addColorStop(0, '#9c27b0');
+      paddleGradient2.addColorStop(1, '#2196F3');
+      ctx.fillStyle = paddleGradient2;
       ctx.fillRect(canvas.width - paddleWidth, computerY, paddleWidth, paddleHeight);
       
-      // Bola
+      // Bola com efeito de brilho
+      const ballGradient = ctx.createRadialGradient(ballX, ballY, 0, ballX, ballY, ballSize);
+      ballGradient.addColorStop(0, 'rgba(156, 39, 176, 0.8)');
+      ballGradient.addColorStop(0.7, 'rgba(33, 150, 243, 0.8)');
+      ballGradient.addColorStop(1, 'rgba(33, 150, 243, 0.5)');
+      
       ctx.beginPath();
       ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
+      ctx.fillStyle = ballGradient;
       ctx.fill();
+      
+      // Efeito de brilho
+      ctx.shadowColor = 'rgba(156, 39, 176, 0.7)';
+      ctx.shadowBlur = 15;
+      ctx.fill();
+      ctx.shadowBlur = 0;
     }
     
     function update() {
       if (gameOver) return;
       
-      // Movimento da bola mais lento
+      handleKeyPress();
+      
+      // Movimento da bola
       ballX += ballSpeedX;
       ballY += ballSpeedY;
       
@@ -686,12 +792,20 @@ class NotificationManager {
       // Colisão com paddles
       if (ballX < paddleWidth + ballSize && 
           ballY > playerY && ballY < playerY + paddleHeight) {
-        ballSpeedX = -ballSpeedX * 1.05; // Aumenta velocidade
+        ballSpeedX = -ballSpeedX * 1.05;
+        
+        // Efeito de mudança de cor na colisão
+        ctx.shadowColor = 'rgba(33, 150, 243, 0.9)';
+        setTimeout(() => ctx.shadowColor = 'rgba(156, 39, 176, 0.7)', 100);
       }
       
       if (ballX > canvas.width - paddleWidth - ballSize && 
           ballY > computerY && ballY < computerY + paddleHeight) {
-        ballSpeedX = -ballSpeedX * 1.05; // Aumenta velocidade
+        ballSpeedX = -ballSpeedX * 1.05;
+        
+        // Efeito de mudança de cor na colisão
+        ctx.shadowColor = 'rgba(156, 39, 176, 0.9)';
+        setTimeout(() => ctx.shadowColor = 'rgba(33, 150, 243, 0.7)', 100);
       }
       
       // Pontuação
@@ -725,20 +839,28 @@ class NotificationManager {
     function checkGameOver() {
       if (playerScore >= maxScore || computerScore >= maxScore) {
         gameOver = true;
-        ctx.font = '40px Arial';
-        ctx.fillStyle = 'white';
-        ctx.textAlign = 'center';
-        ctx.fillText(
-          playerScore >= maxScore ? 'Você Venceu!' : 'Computador Venceu!', 
-          canvas.width / 2, 
-          canvas.height / 2
-        );
-        ctx.font = '20px Arial';
-        ctx.fillText(
-          'Clique em ✕ para fechar', 
-          canvas.width / 2, 
-          canvas.height / 2 + 40
-        );
+        
+        // Criar overlay de fim de jogo
+        const gameOverlay = document.createElement('div');
+        gameOverlay.className = 'game-overlay';
+        
+        const gameOverText = document.createElement('div');
+        gameOverText.style.color = 'white';
+        gameOverText.style.fontSize = '40px';
+        gameOverText.style.fontFamily = 'Arial, sans-serif';
+        gameOverText.style.textShadow = '0 0 10px rgba(255,255,255,0.5)';
+        gameOverText.style.marginBottom = '20px';
+        gameOverText.textContent = playerScore >= maxScore ? 'Você Venceu!' : 'Computador Venceu!';
+        
+        const restartText = document.createElement('div');
+        restartText.style.color = 'rgba(255,255,255,0.7)';
+        restartText.style.fontSize = '20px';
+        restartText.style.fontFamily = 'Arial, sans-serif';
+        restartText.textContent = 'Clique em ✕ para fechar';
+        
+        gameOverlay.appendChild(gameOverText);
+        gameOverlay.appendChild(restartText);
+        document.querySelector('.game-container').appendChild(gameOverlay);
       }
     }
     
@@ -746,8 +868,8 @@ class NotificationManager {
       if (gameOver) return;
       ballX = canvas.width / 2;
       ballY = canvas.height / 2;
-      ballSpeedX = 3 * (Math.random() > 0.5 ? 1 : -1);
-      ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+      ballSpeedX = 4 * (Math.random() > 0.5 ? 1 : -1);
+      ballSpeedY = 4 * (Math.random() > 0.5 ? 1 : -1);
     }
     
     function gameLoop() {
@@ -769,10 +891,23 @@ class NotificationManager {
     this.showNotification('Tema Alterado', isDark ? 'Tema escuro ativado' : 'Tema escuro desativado', 'info');
     
     // Forçar texto branco nos elementos importantes
-    const elements = document.querySelectorAll('.activityname, .instancename, .sectionname, .activitytitle');
+    const elements = document.querySelectorAll(`
+      .activityname, .instancename, .sectionname, .activitytitle,
+      .course-content, .course-content *, .activity-description,
+      .activity-description *, .no-overflow, .no-overflow *,
+      .card-text, .card-text *, .contentafterlink, .contentafterlink *,
+      .activity-info, .activity-info *, .mod-indent-outer,
+      .mod-indent-outer *, .activityinstance, .activityinstance *
+    `);
+    
     elements.forEach(el => {
-      el.style.color = isDark ? '#ffffff' : '';
-      el.style.textShadow = isDark ? '0 0 2px rgba(0,0,0,0.5)' : '';
+      if (isDark) {
+        el.style.color = '#e0e0e0';
+        el.style.textShadow = '0 0 2px rgba(0,0,0,0.5)';
+      } else {
+        el.style.color = '';
+        el.style.textShadow = '';
+      }
     });
   }
 
