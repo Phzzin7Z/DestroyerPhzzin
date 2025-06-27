@@ -50,7 +50,7 @@ function showIntroScreen() {
         white-space: pre;
         text-align: center;
         margin: 0;
-        font-size: 18px;  // Aumentei de 14px para 16px
+        font-size: 22px;  // Aumentei de 14px para 16px
         line-height: 1.2;
     `;
     const injectButton = document.createElement('button');
