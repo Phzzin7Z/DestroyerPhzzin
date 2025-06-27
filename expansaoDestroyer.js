@@ -31,7 +31,7 @@ function showIntroScreen() {
         animation: fadeIn 1.5s ease-out forwards;
     `;
 
-    const asciiArt = document.createElement('pre');
+        const asciiArt = document.createElement('pre');
     asciiArt.textContent = `
 ▓█████▄ ▓█████   ██████ ▄▄▄█████▓ ██▀███   ▒█████ ▓██   ██▓▓█████  ██▀███  
 ▒██▀ ██▌▓█   ▀ ▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▒██▒  ██▒▒██  ██▒▓█   ▀ ▓██ ▒ ██▒
@@ -50,11 +50,9 @@ function showIntroScreen() {
         white-space: pre;
         text-align: center;
         margin: 0;
-        font-size: 14px;
+        font-size: 16px;  // Aumentei de 14px para 16px
         line-height: 1.2;
-        text-shadow: 0 0 10px #9c27b0;
     `;
-
     const injectButton = document.createElement('button');
     injectButton.textContent = 'INJECTAR';
     injectButton.style.cssText = `
