@@ -1,5 +1,5 @@
 /*
- * Expansão Destroyer by Phzzin - Customizado por Phzzin
+ * Customizado por Phzzin
  * Base original por AmmieNyami, DarkMode e marcos10pc
  */
 
