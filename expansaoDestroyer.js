@@ -29,9 +29,68 @@ function showIntroScreen() {
         align-items: center;
         opacity: 0;
         animation: fadeIn 1.5s ease-out forwards;
+        overflow: hidden;
     `;
 
-        const asciiArt = document.createElement('pre');
+    // Efeito hacker no fundo
+    const hackerEffect = document.createElement('div');
+    hackerEffect.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        z-index: 0;
+        opacity: 0.3;
+        font-family: monospace;
+        color: #6a0dad;
+        font-size: 14px;
+        line-height: 1.2;
+        pointer-events: none;
+    `;
+    overlay.appendChild(hackerEffect);
+
+    // Gerar caracteres aleatórios para o efeito hacker
+    function generateHackerText() {
+        const chars = "01!@#$%^&*()_+{}|:\"<>?~`-=[]\\;',./ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let text = '';
+        const columns = Math.floor(window.innerWidth / 14);
+        const rows = Math.floor(window.innerHeight / 20);
+        
+        for (let i = 0; i < rows; i++) {
+            let line = '';
+            for (let j = 0; j < columns; j++) {
+                line += Math.random() > 0.8 ? chars[Math.floor(Math.random() * chars.length)] : ' ';
+            }
+            text += line + '\n';
+        }
+        hackerEffect.textContent = text;
+    }
+
+    generateHackerText();
+    setInterval(() => {
+        // Animar o texto hacker
+        const lines = hackerEffect.textContent.split('\n');
+        lines.shift();
+        lines.push(lines[0]);
+        hackerEffect.textContent = lines.join('\n');
+        
+        // Adicionar novos caracteres aleatórios
+        if (Math.random() > 0.7) {
+            const randomLine = Math.floor(Math.random() * lines.length);
+            const randomChar = Math.floor(Math.random() * lines[0].length);
+            const chars = "01!@#$%^&*()_+{}|:\"<>?~`-=[]\\;',./ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            const newChar = chars[Math.floor(Math.random() * chars.length)];
+            
+            const lineArr = lines[randomLine].split('');
+            lineArr[randomChar] = newChar;
+            lines[randomLine] = lineArr.join('');
+            hackerEffect.textContent = lines.join('\n');
+        }
+    }, 100);
+
+    const asciiArt = document.createElement('pre');
     asciiArt.textContent = `
 ▓█████▄ ▓█████   ██████ ▄▄▄█████▓ ██▀███   ▒█████ ▓██   ██▓▓█████  ██▀███  
 ▒██▀ ██▌▓█   ▀ ▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▒██▒  ██▒▒██  ██▒▓█   ▀ ▓██ ▒ ██▒
@@ -45,13 +104,16 @@ function showIntroScreen() {
  ░                                                 ░ ░                     
     `;
     asciiArt.style.cssText = `
-        color: #fff;
+        color: #add8e6; /* Azul bem fraco */
         font-family: monospace;
         white-space: pre;
         text-align: center;
         margin: 0;
-        font-size: 26px;  // Aumentei de 14px para 16px
+        font-size: 18px;  /* Aumentado de 16px para 18px */
         line-height: 1.2;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 0 10px rgba(173, 216, 230, 0.3);
     `;
     const injectButton = document.createElement('button');
     injectButton.textContent = 'INJECTAR';
@@ -61,7 +123,7 @@ function showIntroScreen() {
         background-color: #251b3a;
         color: white;
         border: 2px solid #2c244d;
-        border-radius: 5px;
+        border-radius: 20px; /* Mais arredondado */
         font-size: 18px;
         font-weight: bold;
         cursor: pointer;
@@ -69,6 +131,7 @@ function showIntroScreen() {
         box-shadow: 0 0 15px rgba(44, 36, 77, 0.7);
         position: relative;
         overflow: hidden;
+        z-index: 1;
     `;
 
     // Efeito hover do botão
@@ -417,6 +480,18 @@ class NotificationManager {
                 color: #fff !important;
             }
             
+            /* Light theme button colors */
+            body:not(.dark-theme) .panel-button,
+            body:not(.dark-theme) .mystery-button {
+                background-color: #6a0dad !important;
+                border-color: #7b1fa2 !important;
+            }
+            
+            body:not(.dark-theme) .panel-button:hover,
+            body:not(.dark-theme) .mystery-button:hover {
+                background-color: #7b1fa2 !important;
+            }
+            
             /* Notification styles */
             @keyframes notificationSlideIn {
                 0% { transform: translateX(100%); opacity: 0; }
@@ -532,7 +607,7 @@ class NotificationManager {
                 background: #251b3a;
                 color: white;
                 border: 2px solid #2c244d;
-                border-radius: 5px;
+                border-radius: 20px; /* Mais arredondado */
                 padding: 10px 20px;
                 margin: 5px 0;
                 cursor: pointer;
@@ -562,7 +637,7 @@ class NotificationManager {
                 background: #251b3a;
                 color: white;
                 border: 2px solid #2c244d;
-                border-radius: 5px;
+                border-radius: 20px; /* Mais arredondado */
                 padding: 10px 20px;
                 margin: 5px 0;
                 cursor: pointer;
@@ -794,9 +869,9 @@ class NotificationManager {
         let ballY = canvas.height / 2;
         
         // Velocidades ajustadas para ficar mais lento
-        let ballSpeedX = 2.5;
-        let ballSpeedY = 2.5;
-        let computerSpeed = 2;
+        let ballSpeedX = 2; // Reduzido de 2.5 para 2
+        let ballSpeedY = 2; // Reduzido de 2.5 para 2
+        let computerSpeed = 1.8; // Reduzido de 2 para 1.8 (IA mais lenta)
         
         // Pontuação
         let playerScore = 0;
@@ -893,11 +968,16 @@ class NotificationManager {
                 resetBall();
             }
             
-            // IA do computador (simples)
+            // IA do computador (simples e mais lenta)
             const computerPaddleCenter = computerY + paddleHeight / 2;
-            if (computerPaddleCenter < ballY - 10) {
+            const ballPrediction = ballY + (ballSpeedY * (canvas.width - ballX) / ballSpeedX);
+            
+            // Adicionar um pouco de aleatoriedade para tornar mais fácil
+            const targetY = ballPrediction + (Math.random() * 40 - 20);
+            
+            if (computerPaddleCenter < targetY - 15) {
                 computerY += computerSpeed;
-            } else if (computerPaddleCenter > ballY + 10) {
+            } else if (computerPaddleCenter > targetY + 15) {
                 computerY -= computerSpeed;
             }
             
@@ -938,8 +1018,8 @@ class NotificationManager {
             if (gameOver) return;
             ballX = canvas.width / 2;
             ballY = canvas.height / 2;
-            ballSpeedX = 2.5 * (Math.random() > 0.5 ? 1 : -1);
-            ballSpeedY = 2.5 * (Math.random() > 0.5 ? 1 : -1);
+            ballSpeedX = 2 * (Math.random() > 0.5 ? 1 : -1);
+            ballSpeedY = 2 * (Math.random() > 0.5 ? 1 : -1);
         }
         
         function gameLoop() {
