@@ -33,18 +33,16 @@ function showIntroScreen() {
 
     const asciiArt = document.createElement('pre');
     asciiArt.textContent = `
-  _____  _    _  _____  _____  _   _ 
- |  __ \\| |  | |/ ____||_   _|| \\ | |
- | |__) | |__| | (___    | |  |  \\| |
- |  ___/|  __  |\\___ \\   | |  | . \` |
- | |    | |  | |____) | _| |_ | |\\  |
- |_|    |_|  |_|_____/ |_____||_| \\_|
-    ____  ___________  _____  _   _ 
-   |  _ \\|___  /  __ \\|  __ \\| \\ | |
-   | |_) |  / /| |  | | |  | |  \\| |
-   |  _ <  / / | |  | | |  | | . \` |
-   | |_) ./ /__| |__| | |__| | |\\  |
-   |____/_____|_____/|_____/|_| \\_|
+▓█████▄ ▓█████   ██████ ▄▄▄█████▓ ██▀███   ▒█████ ▓██   ██▓▓█████  ██▀███  
+▒██▀ ██▌▓█   ▀ ▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▒██▒  ██▒▒██  ██▒▓█   ▀ ▓██ ▒ ██▒
+░██   █▌▒███   ░ ▓██▄   ▒ ▓██░ ▒░▓██ ░▄█ ▒▒██░  ██▒ ▒██ ██░▒███   ▓██ ░▄█ ▒
+░▓█▄   ▌▒▓█  ▄   ▒   ██▒░ ▓██▓ ░ ▒██▀▀█▄  ▒██   ██░ ░ ▐██▓░▒▓█  ▄ ▒██▀▀█▄  
+░▒████▓ ░▒████▒▒██████▒▒  ▒██▒ ░ ░██▓ ▒██▒░ ████▓▒░ ░ ██▒▓░░▒████▒░██▓ ▒██▒
+ ▒▒▓  ▒ ░░ ▒░ ░▒ ▒▓▒ ▒ ░  ▒ ░░   ░ ▒▓ ░▒▓░░ ▒░▒░▒░   ██▒▒▒ ░░ ▒░ ░░ ▒▓ ░▒▓░
+ ░ ▒  ▒  ░ ░  ░░ ░▒  ░ ░    ░      ░▒ ░ ▒░  ░ ▒ ▒░ ▓██ ░▒░  ░ ░  ░  ░▒ ░ ▒░
+ ░ ░  ░    ░   ░  ░  ░    ░        ░░   ░ ░ ░ ░ ▒  ▒ ▒ ░░     ░     ░░   ░ 
+   ░       ░  ░      ░              ░         ░ ░  ░ ░        ░  ░   ░     
+ ░                                                 ░ ░                     
     `;
     asciiArt.style.cssText = `
         color: #fff;
@@ -52,7 +50,7 @@ function showIntroScreen() {
         white-space: pre;
         text-align: center;
         margin: 0;
-        font-size: 12px;
+        font-size: 14px;
         line-height: 1.2;
         text-shadow: 0 0 10px #9c27b0;
     `;
@@ -62,27 +60,27 @@ function showIntroScreen() {
     injectButton.style.cssText = `
         margin-top: 30px;
         padding: 12px 30px;
-        background: linear-gradient(135deg, #9c27b0, #2196F3);
+        background-color: #251b3a;
         color: white;
-        border: none;
+        border: 2px solid #2c244d;
         border-radius: 5px;
         font-size: 18px;
         font-weight: bold;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 0 15px rgba(156, 39, 176, 0.7);
+        box-shadow: 0 0 15px rgba(44, 36, 77, 0.7);
         position: relative;
         overflow: hidden;
     `;
 
     // Efeito hover do botão
     injectButton.addEventListener('mouseover', () => {
-        injectButton.style.boxShadow = '0 0 25px rgba(33, 150, 243, 0.9)';
+        injectButton.style.boxShadow = '0 0 25px rgba(44, 36, 77, 0.9)';
         injectButton.style.transform = 'scale(1.05)';
     });
 
     injectButton.addEventListener('mouseout', () => {
-        injectButton.style.boxShadow = '0 0 15px rgba(156, 39, 176, 0.7)';
+        injectButton.style.boxShadow = '0 0 15px rgba(44, 36, 77, 0.7)';
         injectButton.style.transform = 'scale(1)';
     });
 
@@ -96,32 +94,9 @@ function showIntroScreen() {
         }, 200);
     });
 
-    // Efeito de renderização hacker
-    const text = "Inicializando sistemas...";
-    const loadingText = document.createElement('div');
-    loadingText.style.cssText = `
-        color: #0f0;
-        font-family: 'Courier New', monospace;
-        margin-top: 20px;
-        font-size: 14px;
-        height: 20px;
-    `;
-
     overlay.appendChild(asciiArt);
     overlay.appendChild(injectButton);
-    overlay.appendChild(loadingText);
     document.body.appendChild(overlay);
-
-    // Animação de digitação
-    let i = 0;
-    const typingEffect = setInterval(() => {
-        if (i < text.length) {
-            loadingText.textContent = text.substring(0, i+1);
-            i++;
-        } else {
-            clearInterval(typingEffect);
-        }
-    }, 100);
 
     // Adicionar estilos de animação
     const style = document.createElement('style');
@@ -135,9 +110,9 @@ function showIntroScreen() {
             to { opacity: 0; }
         }
         @keyframes pulse {
-            0% { box-shadow: 0 0 15px rgba(156, 39, 176, 0.7); }
-            50% { box-shadow: 0 0 25px rgba(33, 150, 243, 0.9); }
-            100% { box-shadow: 0 0 15px rgba(156, 39, 176, 0.7); }
+            0% { box-shadow: 0 0 15px rgba(44, 36, 77, 0.7); }
+            50% { box-shadow: 0 0 25px rgba(44, 36, 77, 0.9); }
+            100% { box-shadow: 0 0 15px rgba(44, 36, 77, 0.7); }
         }
     `;
     document.head.appendChild(style);
@@ -556,67 +531,59 @@ class NotificationManager {
                 transform: translateY(0);
             }
             .panel-button {
-                background: #1e1e1e;
+                background: #251b3a;
                 color: white;
-                border: none;
-                border-radius: 20px;
-                padding: 8px 16px;
+                border: 2px solid #2c244d;
+                border-radius: 5px;
+                padding: 10px 20px;
                 margin: 5px 0;
                 cursor: pointer;
                 font-family: 'Segoe UI', Roboto, sans-serif;
                 font-size: 14px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                box-shadow: 0 0 10px rgba(44, 36, 77, 0.5);
                 transition: all 0.2s ease;
                 display: block;
-                width: 100%;
-                text-align: left;
+                width: 150px;
+                text-align: center;
             }
             .panel-button:hover {
-                background: #2e2e2e;
-                transform: translateX(8px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+                background: #2c244d;
+                box-shadow: 0 0 15px rgba(44, 36, 77, 0.8);
             }
             .panel-button.credits {
-                background: linear-gradient(90deg, #1e1e1e, #333);
+                background: #251b3a;
+                border-color: #2c244d;
             }
             .panel-button.theme-toggle {
-                background: linear-gradient(90deg, #1e1e1e, #9c27b0);
+                background: #251b3a;
+                border-color: #2c244d;
             }
 
             /* Estilo do botão Pong */
             .mystery-button {
-                background: linear-gradient(90deg, #1e1e1e, #2196F3);
+                background: #251b3a;
                 color: white;
-                border: none;
-                border-radius: 20px;
-                padding: 8px 16px;
+                border: 2px solid #2c244d;
+                border-radius: 5px;
+                padding: 10px 20px;
                 margin: 5px 0;
                 cursor: pointer;
                 font-family: 'Segoe UI', Roboto, sans-serif;
                 font-size: 14px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                box-shadow: 0 0 10px rgba(44, 36, 77, 0.5);
                 transition: all 0.2s ease;
                 display: block;
-                width: 100%;
-                text-align: left;
+                width: 150px;
+                text-align: center;
                 position: fixed;
                 bottom: 20px;
                 left: 20px;
-                width: auto;
                 z-index: 9997;
-                animation: pulse 2s infinite;
             }
             
             .mystery-button:hover {
-                background: linear-gradient(90deg, #1e1e1e, #1976D2);
-                transform: translateX(8px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            }
-
-            @keyframes pulse {
-                0% { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-                50% { box-shadow: 0 2px 15px rgba(33,150,243,0.5); }
-                100% { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+                background: #2c244d;
+                box-shadow: 0 0 15px rgba(44, 36, 77, 0.8);
             }
 
             /* Modern Pong Game styles */
@@ -627,12 +594,12 @@ class NotificationManager {
                 transform: translate(-50%, -50%);
                 width: 600px;
                 height: 400px;
-                background: rgba(30, 30, 30, 0.9);
-                border: 2px solid #444;
+                background: rgba(37, 27, 58, 0.95);
+                border: 2px solid #2c244d;
                 border-radius: 10px;
                 z-index: 10000;
                 display: none;
-                box-shadow: 0 0 30px rgba(0,0,0,0.8);
+                box-shadow: 0 0 30px rgba(44, 36, 77, 0.8);
                 backdrop-filter: blur(5px);
                 overflow: hidden;
             }
@@ -641,9 +608,9 @@ class NotificationManager {
                 position: absolute;
                 top: 10px;
                 right: 10px;
-                background: #333;
+                background: #251b3a;
                 color: white;
-                border: 1px solid #555;
+                border: 2px solid #2c244d;
                 border-radius: 50%;
                 width: 30px;
                 height: 30px;
@@ -657,7 +624,7 @@ class NotificationManager {
             }
             
             .close-btn:hover {
-                background: #555;
+                background: #2c244d;
                 transform: rotate(90deg);
             }
             
@@ -685,15 +652,15 @@ class NotificationManager {
             .pong-ball {
                 position: absolute;
                 border-radius: 50%;
-                background: linear-gradient(135deg, #9c27b0, #2196F3);
-                box-shadow: 0 0 10px rgba(156, 39, 176, 0.7);
+                background: #2c244d;
+                box-shadow: 0 0 10px rgba(44, 36, 77, 0.7);
             }
             
             .pong-paddle {
                 position: absolute;
                 border-radius: 5px;
-                background: linear-gradient(90deg, #2196F3, #9c27b0);
-                box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+                background: #2c244d;
+                box-shadow: 0 0 10px rgba(44, 36, 77, 0.5);
             }
             
             .game-overlay {
@@ -829,9 +796,9 @@ class NotificationManager {
         let ballY = canvas.height / 2;
         
         // Velocidades ajustadas para ficar mais lento
-        let ballSpeedX = 3;
-        let ballSpeedY = 3;
-        let computerSpeed = 2.5;
+        let ballSpeedX = 2.5;
+        let ballSpeedY = 2.5;
+        let computerSpeed = 2;
         
         // Pontuação
         let playerScore = 0;
@@ -841,23 +808,20 @@ class NotificationManager {
         // Controles WASD
         const handleKeyPress = () => {
             if (this.keysPressed['w'] && playerY > 0) {
-                playerY -= 7;
+                playerY -= 6;
             }
             if (this.keysPressed['s'] && playerY < canvas.height - paddleHeight) {
-                playerY += 7;
+                playerY += 6;
             }
         };
         
         function draw() {
             // Fundo com gradiente escuro
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, '#121212');
-            gradient.addColorStop(1, '#1e1e1e');
-            ctx.fillStyle = gradient;
+            ctx.fillStyle = '#251b3a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Linha central tracejada
-            ctx.strokeStyle = 'rgba(156, 39, 176, 0.3)';
+            ctx.strokeStyle = 'rgba(44, 36, 77, 0.5)';
             ctx.beginPath();
             ctx.setLineDash([10, 15]);
             ctx.moveTo(canvas.width / 2, 0);
@@ -865,32 +829,19 @@ class NotificationManager {
             ctx.stroke();
             ctx.setLineDash([]);
             
-            // Paddles com gradiente
-            const paddleGradient1 = ctx.createLinearGradient(0, playerY, 0, playerY + paddleHeight);
-            paddleGradient1.addColorStop(0, '#2196F3');
-            paddleGradient1.addColorStop(1, '#9c27b0');
-            ctx.fillStyle = paddleGradient1;
+            // Paddles
+            ctx.fillStyle = '#2c244d';
             ctx.fillRect(0, playerY, paddleWidth, paddleHeight);
-            
-            const paddleGradient2 = ctx.createLinearGradient(canvas.width - paddleWidth, computerY, canvas.width - paddleWidth, computerY + paddleHeight);
-            paddleGradient2.addColorStop(0, '#9c27b0');
-            paddleGradient2.addColorStop(1, '#2196F3');
-            ctx.fillStyle = paddleGradient2;
             ctx.fillRect(canvas.width - paddleWidth, computerY, paddleWidth, paddleHeight);
             
-            // Bola com efeito de brilho
-            const ballGradient = ctx.createRadialGradient(ballX, ballY, 0, ballX, ballY, ballSize);
-            ballGradient.addColorStop(0, 'rgba(156, 39, 176, 0.8)');
-            ballGradient.addColorStop(0.7, 'rgba(33, 150, 243, 0.8)');
-            ballGradient.addColorStop(1, 'rgba(33, 150, 243, 0.5)');
-            
+            // Bola
             ctx.beginPath();
             ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
-            ctx.fillStyle = ballGradient;
+            ctx.fillStyle = '#2c244d';
             ctx.fill();
             
             // Efeito de brilho
-            ctx.shadowColor = 'rgba(156, 39, 176, 0.7)';
+            ctx.shadowColor = 'rgba(44, 36, 77, 0.7)';
             ctx.shadowBlur = 15;
             ctx.fill();
             ctx.shadowBlur = 0;
@@ -916,8 +867,8 @@ class NotificationManager {
                 ballSpeedX = -ballSpeedX * 1.05;
                 
                 // Efeito de mudança de cor na colisão
-                ctx.shadowColor = 'rgba(33, 150, 243, 0.9)';
-                setTimeout(() => ctx.shadowColor = 'rgba(156, 39, 176, 0.7)', 100);
+                ctx.shadowColor = 'rgba(44, 36, 77, 0.9)';
+                setTimeout(() => ctx.shadowColor = 'rgba(44, 36, 77, 0.7)', 100);
             }
             
             if (ballX > canvas.width - paddleWidth - ballSize && 
@@ -925,8 +876,8 @@ class NotificationManager {
                 ballSpeedX = -ballSpeedX * 1.05;
                 
                 // Efeito de mudança de cor na colisão
-                ctx.shadowColor = 'rgba(156, 39, 176, 0.9)';
-                setTimeout(() => ctx.shadowColor = 'rgba(33, 150, 243, 0.7)', 100);
+                ctx.shadowColor = 'rgba(44, 36, 77, 0.9)';
+                setTimeout(() => ctx.shadowColor = 'rgba(44, 36, 77, 0.7)', 100);
             }
             
             // Pontuação
@@ -989,8 +940,8 @@ class NotificationManager {
             if (gameOver) return;
             ballX = canvas.width / 2;
             ballY = canvas.height / 2;
-            ballSpeedX = 3 * (Math.random() > 0.5 ? 1 : -1);
-            ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+            ballSpeedX = 2.5 * (Math.random() > 0.5 ? 1 : -1);
+            ballSpeedY = 2.5 * (Math.random() > 0.5 ? 1 : -1);
         }
         
         function gameLoop() {
