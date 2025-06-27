@@ -12,62 +12,8 @@ console.clear();
 const noop = () => {};
 console.warn = console.error = window.debug = noop;
 
-// ========== Efeito Hacker no Fundo ==========
-function createHackerBackground() {
-    const chars = "01ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶ";
-    const canvas = document.createElement('canvas');
-    canvas.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        opacity: 0.1;
-    `;
-    document.body.appendChild(canvas);
-
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops = [];
-    for (let i = 0; i < columns; i++) {
-        drops[i] = 1;
-    }
-
-    function draw() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.fillStyle = '#6a3093';
-        ctx.font = fontSize + 'px monospace';
-        
-        for (let i = 0; i < drops.length; i++) {
-            const text = chars[Math.floor(Math.random() * chars.length)];
-            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-            
-            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                drops[i] = 0;
-            }
-            drops[i]++;
-        }
-    }
-
-    setInterval(draw, 50);
-    
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
-}
-
 // ========== Tela de Abertura ==========
 function showIntroScreen() {
-    createHackerBackground();
-    
     const overlay = document.createElement('div');
     overlay.style.cssText = `
         position: fixed;
@@ -75,7 +21,7 @@ function showIntroScreen() {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: #000;
         z-index: 999999;
         display: flex;
         flex-direction: column;
@@ -85,7 +31,7 @@ function showIntroScreen() {
         animation: fadeIn 1.5s ease-out forwards;
     `;
 
-    const asciiArt = document.createElement('pre');
+        const asciiArt = document.createElement('pre');
     asciiArt.textContent = `
 ▓█████▄ ▓█████   ██████ ▄▄▄█████▓ ██▀███   ▒█████ ▓██   ██▓▓█████  ██▀███  
 ▒██▀ ██▌▓█   ▀ ▒██    ▒ ▓  ██▒ ▓▒▓██ ▒ ██▒▒██▒  ██▒▒██  ██▒▓█   ▀ ▓██ ▒ ██▒
@@ -99,45 +45,41 @@ function showIntroScreen() {
  ░                                                 ░ ░                     
     `;
     asciiArt.style.cssText = `
-        color: #7f9bff;
+        color: #fff;
         font-family: monospace;
         white-space: pre;
         text-align: center;
         margin: 0;
-        font-size: 18px;
+        font-size: 16px;  // Aumentei de 14px para 16px
         line-height: 1.2;
-        text-shadow: 0 0 10px rgba(127, 155, 255, 0.3);
     `;
-    
     const injectButton = document.createElement('button');
     injectButton.textContent = 'INJECTAR';
     injectButton.style.cssText = `
         margin-top: 30px;
         padding: 12px 30px;
-        background-color: #6a3093;
+        background-color: #251b3a;
         color: white;
-        border: none;
-        border-radius: 25px;
+        border: 2px solid #2c244d;
+        border-radius: 5px;
         font-size: 18px;
         font-weight: bold;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 0 15px rgba(106, 48, 147, 0.7);
+        box-shadow: 0 0 15px rgba(44, 36, 77, 0.7);
         position: relative;
         overflow: hidden;
     `;
 
     // Efeito hover do botão
     injectButton.addEventListener('mouseover', () => {
-        injectButton.style.boxShadow = '0 0 25px rgba(106, 48, 147, 0.9)';
+        injectButton.style.boxShadow = '0 0 25px rgba(44, 36, 77, 0.9)';
         injectButton.style.transform = 'scale(1.05)';
-        injectButton.style.background = '#7a3ca3';
     });
 
     injectButton.addEventListener('mouseout', () => {
-        injectButton.style.boxShadow = '0 0 15px rgba(106, 48, 147, 0.7)';
+        injectButton.style.boxShadow = '0 0 15px rgba(44, 36, 77, 0.7)';
         injectButton.style.transform = 'scale(1)';
-        injectButton.style.background = '#6a3093';
     });
 
     // Efeito de clique
@@ -166,9 +108,9 @@ function showIntroScreen() {
             to { opacity: 0; }
         }
         @keyframes pulse {
-            0% { box-shadow: 0 0 15px rgba(106, 48, 147, 0.7); }
-            50% { box-shadow: 0 0 25px rgba(106, 48, 147, 0.9); }
-            100% { box-shadow: 0 0 15px rgba(106, 48, 147, 0.7); }
+            0% { box-shadow: 0 0 15px rgba(44, 36, 77, 0.7); }
+            50% { box-shadow: 0 0 25px rgba(44, 36, 77, 0.9); }
+            100% { box-shadow: 0 0 15px rgba(44, 36, 77, 0.7); }
         }
     `;
     document.head.appendChild(style);
@@ -475,15 +417,6 @@ class NotificationManager {
                 color: #fff !important;
             }
             
-            /* Light theme styles */
-            body:not(.dark-theme) a {
-                color: #6a3093 !important;
-            }
-            body:not(.dark-theme) .panel-button {
-                background-color: #8a4db3 !important;
-                border-color: #6a3093 !important;
-            }
-            
             /* Notification styles */
             @keyframes notificationSlideIn {
                 0% { transform: translateX(100%); opacity: 0; }
@@ -498,7 +431,7 @@ class NotificationManager {
                 color: #f0f0f0;
                 padding: 15px;
                 margin-bottom: 15px;
-                border-radius: 12px;
+                border-radius: 8px;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                 animation: notificationSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
                 display: flex;
@@ -596,46 +529,46 @@ class NotificationManager {
                 transform: translateY(0);
             }
             .panel-button {
-                background: #6a3093;
+                background: #251b3a;
                 color: white;
-                border: none;
-                border-radius: 25px;
+                border: 2px solid #2c244d;
+                border-radius: 5px;
                 padding: 10px 20px;
                 margin: 5px 0;
                 cursor: pointer;
                 font-family: 'Segoe UI', Roboto, sans-serif;
                 font-size: 14px;
-                box-shadow: 0 0 10px rgba(106, 48, 147, 0.5);
+                box-shadow: 0 0 10px rgba(44, 36, 77, 0.5);
                 transition: all 0.2s ease;
                 display: block;
                 width: 150px;
                 text-align: center;
             }
             .panel-button:hover {
-                background: #7a3ca3;
-                box-shadow: 0 0 15px rgba(106, 48, 147, 0.8);
+                background: #2c244d;
+                box-shadow: 0 0 15px rgba(44, 36, 77, 0.8);
             }
             .panel-button.credits {
-                background: #6a3093;
-                border-color: #7a3ca3;
+                background: #251b3a;
+                border-color: #2c244d;
             }
             .panel-button.theme-toggle {
-                background: #6a3093;
-                border-color: #7a3ca3;
+                background: #251b3a;
+                border-color: #2c244d;
             }
 
             /* Estilo do botão Pong */
             .mystery-button {
-                background: #6a3093;
+                background: #251b3a;
                 color: white;
-                border: none;
-                border-radius: 25px;
+                border: 2px solid #2c244d;
+                border-radius: 5px;
                 padding: 10px 20px;
                 margin: 5px 0;
                 cursor: pointer;
                 font-family: 'Segoe UI', Roboto, sans-serif;
                 font-size: 14px;
-                box-shadow: 0 0 10px rgba(106, 48, 147, 0.5);
+                box-shadow: 0 0 10px rgba(44, 36, 77, 0.5);
                 transition: all 0.2s ease;
                 display: block;
                 width: 150px;
@@ -647,8 +580,8 @@ class NotificationManager {
             }
             
             .mystery-button:hover {
-                background: #7a3ca3;
-                box-shadow: 0 0 15px rgba(106, 48, 147, 0.8);
+                background: #2c244d;
+                box-shadow: 0 0 15px rgba(44, 36, 77, 0.8);
             }
 
             /* Modern Pong Game styles */
@@ -661,7 +594,7 @@ class NotificationManager {
                 height: 400px;
                 background: rgba(37, 27, 58, 0.95);
                 border: 2px solid #2c244d;
-                border-radius: 15px;
+                border-radius: 10px;
                 z-index: 10000;
                 display: none;
                 box-shadow: 0 0 30px rgba(44, 36, 77, 0.8);
@@ -673,9 +606,9 @@ class NotificationManager {
                 position: absolute;
                 top: 10px;
                 right: 10px;
-                background: #6a3093;
+                background: #251b3a;
                 color: white;
-                border: none;
+                border: 2px solid #2c244d;
                 border-radius: 50%;
                 width: 30px;
                 height: 30px;
@@ -689,7 +622,7 @@ class NotificationManager {
             }
             
             .close-btn:hover {
-                background: #7a3ca3;
+                background: #2c244d;
                 transform: rotate(90deg);
             }
             
@@ -723,7 +656,7 @@ class NotificationManager {
             
             .pong-paddle {
                 position: absolute;
-                border-radius: 10px;
+                border-radius: 5px;
                 background: #2c244d;
                 box-shadow: 0 0 10px rgba(44, 36, 77, 0.5);
             }
@@ -861,9 +794,9 @@ class NotificationManager {
         let ballY = canvas.height / 2;
         
         // Velocidades ajustadas para ficar mais lento
-        let ballSpeedX = 2;
-        let ballSpeedY = 2;
-        let computerSpeed = 1.8; // IA um pouco mais lenta
+        let ballSpeedX = 2.5;
+        let ballSpeedY = 2.5;
+        let computerSpeed = 2;
         
         // Pontuação
         let playerScore = 0;
@@ -929,7 +862,7 @@ class NotificationManager {
             // Colisão com paddles
             if (ballX < paddleWidth + ballSize && 
                 ballY > playerY && ballY < playerY + paddleHeight) {
-                ballSpeedX = -ballSpeedX * 1.02; // Aumento de velocidade menor
+                ballSpeedX = -ballSpeedX * 1.05;
                 
                 // Efeito de mudança de cor na colisão
                 ctx.shadowColor = 'rgba(44, 36, 77, 0.9)';
@@ -938,7 +871,7 @@ class NotificationManager {
             
             if (ballX > canvas.width - paddleWidth - ballSize && 
                 ballY > computerY && ballY < computerY + paddleHeight) {
-                ballSpeedX = -ballSpeedX * 1.02; // Aumento de velocidade menor
+                ballSpeedX = -ballSpeedX * 1.05;
                 
                 // Efeito de mudança de cor na colisão
                 ctx.shadowColor = 'rgba(44, 36, 77, 0.9)';
@@ -960,11 +893,11 @@ class NotificationManager {
                 resetBall();
             }
             
-            // IA do computador (simples e mais lenta)
+            // IA do computador (simples)
             const computerPaddleCenter = computerY + paddleHeight / 2;
-            if (computerPaddleCenter < ballY - 20) { // Maior margem de erro
+            if (computerPaddleCenter < ballY - 10) {
                 computerY += computerSpeed;
-            } else if (computerPaddleCenter > ballY + 20) { // Maior margem de erro
+            } else if (computerPaddleCenter > ballY + 10) {
                 computerY -= computerSpeed;
             }
             
@@ -1005,8 +938,8 @@ class NotificationManager {
             if (gameOver) return;
             ballX = canvas.width / 2;
             ballY = canvas.height / 2;
-            ballSpeedX = 2 * (Math.random() > 0.5 ? 1 : -1);
-            ballSpeedY = 2 * (Math.random() > 0.5 ? 1 : -1);
+            ballSpeedX = 2.5 * (Math.random() > 0.5 ? 1 : -1);
+            ballSpeedY = 2.5 * (Math.random() > 0.5 ? 1 : -1);
         }
         
         function gameLoop() {
@@ -1151,7 +1084,7 @@ class ActivityProcessorUI {
                 this.notificationManager.showNotification('Progresso', `Marcando ${simplePages.length} atividades como concluídas...`, 'info');
                 await Promise.all(simplePages.map(pageId => 
                     this.pageCompletionService.markPageAsCompleted(pageId)
-                );
+                ));
             }
 
             if (exams.length > 0) {
