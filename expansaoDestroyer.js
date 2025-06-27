@@ -32,7 +32,7 @@ function showIntroScreen() {
         overflow: hidden;
     `;
 
-    // Efeito hacker no fundo
+    // Efeito hacker no fundo melhorado
     const hackerEffect = document.createElement('div');
     hackerEffect.style.cssText = `
         position: absolute;
@@ -44,51 +44,40 @@ function showIntroScreen() {
         z-index: 0;
         opacity: 0.3;
         font-family: monospace;
-        color: #6a0dad;
-        font-size: 14px;
-        line-height: 1.2;
+        color: #9c27b0;
+        font-size: 16px;
+        line-height: 1;
         pointer-events: none;
+        display: flex;
+        flex-wrap: wrap;
     `;
     overlay.appendChild(hackerEffect);
 
-    // Gerar caracteres aleatórios para o efeito hacker
-    function generateHackerText() {
-        const chars = "01!@#$%^&*()_+{}|:\"<>?~`-=[]\\;',./ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        let text = '';
-        const columns = Math.floor(window.innerWidth / 14);
-        const rows = Math.floor(window.innerHeight / 20);
+    // Gerar colunas de caracteres aleatórios
+    const columns = Math.floor(window.innerWidth / 14);
+    const rows = Math.floor(window.innerHeight / 20);
+    
+    for (let i = 0; i < columns; i++) {
+        const column = document.createElement('div');
+        column.style.cssText = `
+            width: 14px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            animation: fallDown ${Math.random() * 2 + 1}s linear infinite;
+            animation-delay: ${Math.random() * 2}s;
+        `;
         
-        for (let i = 0; i < rows; i++) {
-            let line = '';
-            for (let j = 0; j < columns; j++) {
-                line += Math.random() > 0.8 ? chars[Math.floor(Math.random() * chars.length)] : ' ';
-            }
-            text += line + '\n';
-        }
-        hackerEffect.textContent = text;
-    }
-
-    generateHackerText();
-    setInterval(() => {
-        // Animar o texto hacker
-        const lines = hackerEffect.textContent.split('\n');
-        lines.shift();
-        lines.push(lines[0]);
-        hackerEffect.textContent = lines.join('\n');
-        
-        // Adicionar novos caracteres aleatórios
-        if (Math.random() > 0.7) {
-            const randomLine = Math.floor(Math.random() * lines.length);
-            const randomChar = Math.floor(Math.random() * lines[0].length);
+        // Preencher coluna com caracteres
+        let columnContent = '';
+        for (let j = 0; j < rows; j++) {
             const chars = "01!@#$%^&*()_+{}|:\"<>?~`-=[]\\;',./ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            const newChar = chars[Math.floor(Math.random() * chars.length)];
-            
-            const lineArr = lines[randomLine].split('');
-            lineArr[randomChar] = newChar;
-            lines[randomLine] = lineArr.join('');
-            hackerEffect.textContent = lines.join('\n');
+            columnContent += Math.random() > 0.7 ? chars[Math.floor(Math.random() * chars.length)] : ' ';
+            columnContent += '\n';
         }
-    }, 100);
+        column.textContent = columnContent;
+        hackerEffect.appendChild(column);
+    }
 
     const asciiArt = document.createElement('pre');
     asciiArt.textContent = `
@@ -104,16 +93,16 @@ function showIntroScreen() {
  ░                                                 ░ ░                     
     `;
     asciiArt.style.cssText = `
-        color: #add8e6; /* Azul bem fraco */
+        color: #fff;
         font-family: monospace;
         white-space: pre;
         text-align: center;
         margin: 0;
-        font-size: 18px;  /* Aumentado de 16px para 18px */
+        font-size: 18px;
         line-height: 1.2;
         position: relative;
         z-index: 1;
-        text-shadow: 0 0 10px rgba(173, 216, 230, 0.3);
+        text-shadow: 0 0 10px #9c27b0;
     `;
     const injectButton = document.createElement('button');
     injectButton.textContent = 'INJECTAR';
@@ -123,7 +112,7 @@ function showIntroScreen() {
         background-color: #251b3a;
         color: white;
         border: 2px solid #2c244d;
-        border-radius: 20px; /* Mais arredondado */
+        border-radius: 20px;
         font-size: 18px;
         font-weight: bold;
         cursor: pointer;
@@ -174,6 +163,10 @@ function showIntroScreen() {
             0% { box-shadow: 0 0 15px rgba(44, 36, 77, 0.7); }
             50% { box-shadow: 0 0 25px rgba(44, 36, 77, 0.9); }
             100% { box-shadow: 0 0 15px rgba(44, 36, 77, 0.7); }
+        }
+        @keyframes fallDown {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
         }
     `;
     document.head.appendChild(style);
@@ -607,7 +600,7 @@ class NotificationManager {
                 background: #251b3a;
                 color: white;
                 border: 2px solid #2c244d;
-                border-radius: 20px; /* Mais arredondado */
+                border-radius: 20px;
                 padding: 10px 20px;
                 margin: 5px 0;
                 cursor: pointer;
@@ -637,7 +630,7 @@ class NotificationManager {
                 background: #251b3a;
                 color: white;
                 border: 2px solid #2c244d;
-                border-radius: 20px; /* Mais arredondado */
+                border-radius: 20px;
                 padding: 10px 20px;
                 margin: 5px 0;
                 cursor: pointer;
@@ -667,7 +660,7 @@ class NotificationManager {
                 transform: translate(-50%, -50%);
                 width: 600px;
                 height: 400px;
-                background: rgba(37, 27, 58, 0.95);
+                background: rgba(0, 0, 0, 0.95);
                 border: 2px solid #2c244d;
                 border-radius: 10px;
                 z-index: 10000;
@@ -725,15 +718,15 @@ class NotificationManager {
             .pong-ball {
                 position: absolute;
                 border-radius: 50%;
-                background: #2c244d;
-                box-shadow: 0 0 10px rgba(44, 36, 77, 0.7);
+                background: #9c27b0;
+                box-shadow: 0 0 10px rgba(156, 39, 176, 0.7);
             }
             
             .pong-paddle {
                 position: absolute;
                 border-radius: 5px;
-                background: #2c244d;
-                box-shadow: 0 0 10px rgba(44, 36, 77, 0.5);
+                background: #9c27b0;
+                box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
             }
             
             .game-overlay {
@@ -869,9 +862,9 @@ class NotificationManager {
         let ballY = canvas.height / 2;
         
         // Velocidades ajustadas para ficar mais lento
-        let ballSpeedX = 2; // Reduzido de 2.5 para 2
-        let ballSpeedY = 2; // Reduzido de 2.5 para 2
-        let computerSpeed = 1.8; // Reduzido de 2 para 1.8 (IA mais lenta)
+        let ballSpeedX = 2;
+        let ballSpeedY = 2;
+        let computerSpeed = 1.8;
         
         // Pontuação
         let playerScore = 0;
@@ -889,12 +882,12 @@ class NotificationManager {
         };
         
         function draw() {
-            // Fundo com gradiente escuro
-            ctx.fillStyle = '#251b3a';
+            // Fundo preto
+            ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Linha central tracejada
-            ctx.strokeStyle = 'rgba(44, 36, 77, 0.5)';
+            // Linha central tracejada roxa
+            ctx.strokeStyle = 'rgba(156, 39, 176, 0.5)';
             ctx.beginPath();
             ctx.setLineDash([10, 15]);
             ctx.moveTo(canvas.width / 2, 0);
@@ -902,19 +895,19 @@ class NotificationManager {
             ctx.stroke();
             ctx.setLineDash([]);
             
-            // Paddles
-            ctx.fillStyle = '#2c244d';
+            // Paddles roxos
+            ctx.fillStyle = '#9c27b0';
             ctx.fillRect(0, playerY, paddleWidth, paddleHeight);
             ctx.fillRect(canvas.width - paddleWidth, computerY, paddleWidth, paddleHeight);
             
-            // Bola
+            // Bola roxa
             ctx.beginPath();
             ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
-            ctx.fillStyle = '#2c244d';
+            ctx.fillStyle = '#9c27b0';
             ctx.fill();
             
             // Efeito de brilho
-            ctx.shadowColor = 'rgba(44, 36, 77, 0.7)';
+            ctx.shadowColor = 'rgba(156, 39, 176, 0.7)';
             ctx.shadowBlur = 15;
             ctx.fill();
             ctx.shadowBlur = 0;
@@ -937,20 +930,20 @@ class NotificationManager {
             // Colisão com paddles
             if (ballX < paddleWidth + ballSize && 
                 ballY > playerY && ballY < playerY + paddleHeight) {
-                ballSpeedX = -ballSpeedX * 1.05;
+                ballSpeedX = -ballSpeedX * 1.03;
                 
                 // Efeito de mudança de cor na colisão
-                ctx.shadowColor = 'rgba(44, 36, 77, 0.9)';
-                setTimeout(() => ctx.shadowColor = 'rgba(44, 36, 77, 0.7)', 100);
+                ctx.shadowColor = 'rgba(156, 39, 176, 0.9)';
+                setTimeout(() => ctx.shadowColor = 'rgba(156, 39, 176, 0.7)', 100);
             }
             
             if (ballX > canvas.width - paddleWidth - ballSize && 
                 ballY > computerY && ballY < computerY + paddleHeight) {
-                ballSpeedX = -ballSpeedX * 1.05;
+                ballSpeedX = -ballSpeedX * 1.03;
                 
                 // Efeito de mudança de cor na colisão
-                ctx.shadowColor = 'rgba(44, 36, 77, 0.9)';
-                setTimeout(() => ctx.shadowColor = 'rgba(44, 36, 77, 0.7)', 100);
+                ctx.shadowColor = 'rgba(156, 39, 176, 0.9)';
+                setTimeout(() => ctx.shadowColor = 'rgba(156, 39, 176, 0.7)', 100);
             }
             
             // Pontuação
